@@ -22,6 +22,7 @@ class SecurePrefs private constructor(private val prefs: SharedPreferences) {
         private const val KEY_ALBUM_ID = "album_id"
         private const val KEY_ALBUM_NAME = "album_name"
         private const val KEY_LAST_SYNC_MILLIS = "last_sync_millis"
+        private const val KEY_AUTO_INTERVAL_MINUTES = "auto_interval_minutes"
 
         @Volatile
         private var instance: SecurePrefs? = null
@@ -67,6 +68,11 @@ class SecurePrefs private constructor(private val prefs: SharedPreferences) {
     var lastSyncMillis: Long
         get() = prefs.getLong(KEY_LAST_SYNC_MILLIS, 0L)
         set(value) = prefs.edit().putLong(KEY_LAST_SYNC_MILLIS, value).apply()
+
+    /** 0 = désactivé (pas de changement auto, uniquement au tap sur le widget). */
+    var autoChangeIntervalMinutes: Int
+        get() = prefs.getInt(KEY_AUTO_INTERVAL_MINUTES, 0)
+        set(value) = prefs.edit().putInt(KEY_AUTO_INTERVAL_MINUTES, value).apply()
 
     fun isConfigured(): Boolean =
         !serverUrl.isNullOrBlank() && !apiKey.isNullOrBlank() && !albumId.isNullOrBlank()

@@ -1,7 +1,9 @@
 package com.mathieu.immichwidget.api
 
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit
@@ -103,26 +105,70 @@ class ImmichApiClient(
     }
 
     /**
-     * GET /api/albums/{id} -> détail de l'album, notamment la liste "assets"
-     * avec l'ID de chaque photo. On ne garde que les IDs, c'est tout ce dont
-     * on a besoin pour le cache.
+     * POST /api/search/metadata avec filtre "albumIds" -> liste paginée des
+     * assets de l'album, ID uniquement.
+     *
+     * ⚠️ IMPORTANT : sur Immich v3.0.0+, GET /api/albums/{id} ne renvoie plus
+     * les assets de façon fiable (breaking change de l'API v3). Le endpoint
+     * de recherche est la méthode recommandée par le projet Immich lui-même
+     * pour lister les photos d'un album, et fonctionne aussi bien en v2 qu'en v3.
      */
     fun listAssetIdsForAlbum(albumId: String): Result<List<String>> {
         return try {
-            val response = client.newCall(buildRequest("/api/albums/$albumId")).execute()
-            response.use {
-                if (!it.isSuccessful) {
-                    return Result.failure(ImmichApiException("HTTP ${it.code} en lisant l'album $albumId"))
+            val ids = mutableListOf<String>()
+            var page = 1
+            val jsonMediaType = "application/json; charset=utf-8".toMediaType()
+
+            while (true) {
+                val requestBodyJson = JSONObject().apply {
+                    put("albumIds", JSONArray().put(albumId))
+                    put("page", page)
+                    put("size", 1000)
                 }
-                val body = it.body?.string() ?: "{}"
-                val obj = JSONObject(body)
-                val assetsArray = obj.optJSONArray("assets") ?: JSONArray()
-                val ids = mutableListOf<String>()
-                for (i in 0 until assetsArray.length()) {
-                    ids.add(assetsArray.getJSONObject(i).getString("id"))
+                val requestBody = requestBodyJson.toString().toRequestBody(jsonMediaType)
+
+                val request = Request.Builder()
+                    .url("${normalizedBaseUrl()}/api/search/metadata")
+                    .header("x-api-key", apiKey)
+                    .header("Accept", "application/json")
+                    .post(requestBody)
+                    .build()
+
+                val response = client.newCall(request).execute()
+                val pageResult: Pair<List<String>, String?> = response.use {
+                    if (!it.isSuccessful) {
+                        return Result.failure(
+                            ImmichApiException("HTTP ${it.code} en cherchant les assets de l'album $albumId (page $page)")
+                        )
+                    }
+                    val body = it.body?.string() ?: "{}"
+                    val obj = JSONObject(body)
+                    val assetsObj = obj.optJSONObject("assets") ?: JSONObject()
+                    val items = assetsObj.optJSONArray("items") ?: JSONArray()
+
+                    val pageIds = mutableListOf<String>()
+                    for (i in 0 until items.length()) {
+                        pageIds.add(items.getJSONObject(i).getString("id"))
+                    }
+
+                    val nextPage = if (assetsObj.isNull("nextPage")) {
+                        null
+                    } else {
+                        assetsObj.optString("nextPage", null)
+                    }
+                    pageIds to nextPage
                 }
-                Result.success(ids)
+
+                ids.addAll(pageResult.first)
+
+                val nextPageValue = pageResult.second
+                if (nextPageValue.isNullOrBlank()) break
+                val nextPageInt = nextPageValue.toIntOrNull() ?: break
+                if (nextPageInt <= page) break // garde-fou anti-boucle infinie si l'API renvoie une valeur incohérente
+                page = nextPageInt
             }
+
+            Result.success(ids)
         } catch (e: Exception) {
             Result.failure(e)
         }

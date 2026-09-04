@@ -33,6 +33,22 @@ dépendance à une version précise de leur client officiel.
    album, ex: ~2000 photos avec 8 téléchargements en parallèle)
 6. Une fois la sync terminée, **tape sur la photo** pour en afficher une nouvelle
 
+## ⏱️ Changement automatique de photo
+
+Dans les params, un champ avec `−` / `+` (pas de 5 min, 0 à 1440) permet de
+régler un intervalle de changement auto de la photo affichée, indépendant
+du tap manuel. `0` = désactivé (comportement d'origine, changement au tap
+uniquement).
+
+Implémenté via `AlarmManager.setAndAllowWhileIdle` (auto-reprogrammé à
+chaque tick) plutôt que WorkManager, qui impose un plancher de 15 min entre
+deux exécutions périodiques — trop restrictif pour un intervalle de 5-10 min.
+
+⚠️ Sur LineageOS avec restrictions batterie agressives, pense à désactiver
+l'optimisation de batterie pour l'app (`Paramètres → Apps → Immich Widget →
+Batterie → Non restreinte`), sinon Doze peut retarder les ticks de plusieurs
+minutes au-delà de l'intervalle réglé.
+
 ## ⚠️ Notes et limitations connues
 
 - **Vérifie les endpoints Immich** : le code cible l'API v1 (`/api/albums`,

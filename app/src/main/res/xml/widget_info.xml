@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    updatePeriodMillis="0" volontairement : la sync des données est gérée par
+    WorkManager (toutes les 6h, cf SyncWorker), pas par le cycle natif du widget
+    qui est trop peu fiable pour du réseau (limité, non garanti par l'OS).
+    Le widget lui-même n'est mis à jour qu'au tap (photo suivante) ou après sync.
+-->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="110dp"
+    android:minHeight="110dp"
+    android:targetCellWidth="2"
+    android:targetCellHeight="2"
+    android:updatePeriodMillis="0"
+    android:resizeMode="horizontal|vertical"
+    android:widgetCategory="home_screen"
+    android:initialLayout="@layout/widget_photo"
+    android:previewLayout="@layout/widget_photo" />

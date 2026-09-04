@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    IMPORTANT (limitation RemoteViews) : seuls certains ViewGroups sont autorisés
+    dans un widget (FrameLayout, LinearLayout, RelativeLayout, GridLayout).
+    On utilise FrameLayout pour superposer la photo et l'icône settings.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_background"
+    android:padding="4dp">
+
+    <!-- Zone principale : tap = photo aléatoire suivante -->
+    <ImageView
+        android:id="@+id/widget_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:contentDescription="@string/widget_label" />
+
+    <!-- Petite icône ⚙️ en coin bas-droit : tap = ouvre la config -->
+    <FrameLayout
+        android:id="@+id/widget_settings_zone"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="6dp"
+        android:background="@drawable/widget_icon_circle_bg">
+
+        <ImageView
+            android:id="@+id/widget_settings_icon"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_settings"
+            android:contentDescription="@string/config_title" />
+    </FrameLayout>
+
+</FrameLayout>

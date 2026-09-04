@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Immich Widget</string>
+    <string name="widget_label">Photo Immich aléatoire</string>
+    <string name="config_title">Configuration du widget</string>
+
+    <string name="label_server_url">URL du serveur Immich (ex: https://photos.maisondrusch.duckdns.org)</string>
+    <string name="label_api_key">API Key Immich</string>
+    <string name="btn_test_connection">Tester la connexion</string>
+    <string name="btn_save">Enregistrer</string>
+    <string name="label_choose_album">Choisir un album</string>
+    <string name="msg_connection_ok">Connexion réussie ✅</string>
+    <string name="msg_connection_failed">Connexion échouée ❌ : %1$s</string>
+    <string name="msg_no_album_selected">Sélectionne un album avant d\'enregistrer</string>
+    <string name="msg_sync_in_progress">Synchronisation en cours…</string>
+    <string name="msg_config_saved">Configuration enregistrée, sync lancée 🚀</string>
+</resources>

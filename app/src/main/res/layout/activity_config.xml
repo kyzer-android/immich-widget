@@ -114,6 +114,15 @@
                 android:textColor="@color/config_text"
                 android:textStyle="bold" />
 
+            <TextView
+                android:id="@+id/text_current_album"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textColor="@color/config_text_secondary"
+                android:textSize="13sp"
+                android:visibility="gone" />
+
             <ProgressBar
                 android:id="@+id/progress_albums"
                 style="?android:attr/progressBarStyleHorizontal"

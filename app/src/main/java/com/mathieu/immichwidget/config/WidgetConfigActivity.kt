@@ -37,6 +37,7 @@ class WidgetConfigActivity : AppCompatActivity() {
     private lateinit var textSyncStatus: TextView
     private lateinit var switchCropMode: SwitchMaterial
     private lateinit var btnClearCache: Button
+    private lateinit var textCurrentAlbum: TextView
     private lateinit var textIntervalValue: TextView
     private lateinit var btnIntervalMinus: Button
     private lateinit var btnIntervalPlus: Button
@@ -82,6 +83,7 @@ class WidgetConfigActivity : AppCompatActivity() {
         textSyncStatus = findViewById(R.id.text_sync_status)
         switchCropMode = findViewById(R.id.switch_crop_mode)
         btnClearCache = findViewById(R.id.btn_clear_cache)
+        textCurrentAlbum = findViewById(R.id.text_current_album)
         textIntervalValue = findViewById(R.id.text_interval_value)
         btnIntervalMinus = findViewById(R.id.btn_interval_minus)
         btnIntervalPlus = findViewById(R.id.btn_interval_plus)
@@ -94,6 +96,12 @@ class WidgetConfigActivity : AppCompatActivity() {
         switchCropMode.isChecked = prefs.cropMode
         currentIntervalMinutes = prefs.autoChangeIntervalMinutes
         updateIntervalDisplay()
+
+        val savedAlbumName = prefs.albumName
+        if (!savedAlbumName.isNullOrBlank()) {
+            textCurrentAlbum.text = getString(R.string.label_current_album, savedAlbumName)
+            textCurrentAlbum.visibility = View.VISIBLE
+        }
     }
 
     private fun setupAlbumList() {
@@ -107,19 +115,19 @@ class WidgetConfigActivity : AppCompatActivity() {
         btnTestConnection.setOnClickListener { testConnection() }
         btnLoadAlbums.setOnClickListener { loadAlbums() }
 
-        // Toucher à l'URL ou à la clé invalide la liste d'albums déjà chargée
-        // (évite de garder affichée la liste d'un autre serveur/compte par erreur).
-        val resetOnEdit = object : TextWatcher {
+        // Toucher à l'URL ou à la clé rend juste le statut de connexion affiché
+        // obsolète (on l'efface). On NE touche PLUS à la sélection d'album ni à
+        // la liste chargée : une simple correction de faute de frappe ne doit
+        // pas obliger à tout recharger et resélectionner l'album.
+        val clearStatusOnEdit = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) {
                 textConnectionStatus.text = ""
-                albumAdapter.submitList(emptyList(), null)
-                selectedAlbum = null
             }
         }
-        inputServerUrl.addTextChangedListener(resetOnEdit)
-        inputApiKey.addTextChangedListener(resetOnEdit)
+        inputServerUrl.addTextChangedListener(clearStatusOnEdit)
+        inputApiKey.addTextChangedListener(clearStatusOnEdit)
 
         btnIntervalMinus.setOnClickListener { adjustInterval(increase = false) }
         btnIntervalPlus.setOnClickListener { adjustInterval(increase = true) }
@@ -219,21 +227,27 @@ class WidgetConfigActivity : AppCompatActivity() {
     private fun saveConfigAndSync() {
         val url = inputServerUrl.text?.toString()?.trim().orEmpty()
         val key = inputApiKey.text?.toString()?.trim().orEmpty()
-        val album = selectedAlbum
 
         if (url.isEmpty() || key.isEmpty()) {
             textSyncStatus.text = getString(R.string.msg_connection_failed, "URL ou API key manquante")
             return
         }
-        if (album == null) {
+
+        // Si l'utilisateur n'a pas rechargé/resélectionné d'album cette
+        // session (ex: il modifie juste l'intervalle ou le mode d'affichage),
+        // on garde l'album déjà configuré plutôt que d'exiger une resélection.
+        val albumId = selectedAlbum?.id ?: prefs.albumId
+        val albumName = selectedAlbum?.albumName ?: prefs.albumName
+
+        if (albumId.isNullOrBlank() || albumName.isNullOrBlank()) {
             textSyncStatus.text = getString(R.string.msg_no_album_selected)
             return
         }
 
         prefs.serverUrl = url
         prefs.apiKey = key
-        prefs.albumId = album.id
-        prefs.albumName = album.albumName
+        prefs.albumId = albumId
+        prefs.albumName = albumName
         prefs.autoChangeIntervalMinutes = currentIntervalMinutes
         prefs.cropMode = switchCropMode.isChecked
 

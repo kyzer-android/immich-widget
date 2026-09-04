@@ -22,4 +22,5 @@
     <string name="hint_crop_switch">Désactivé : l\'image entière est visible, avec des bandes si son format ne correspond pas au widget</string>
     <string name="btn_clear_cache">Vider le cache photos (force un re-téléchargement)</string>
     <string name="msg_cache_cleared">Cache vidé, nouveau téléchargement lancé 🗑️</string>
+    <string name="label_current_album">Album actuel : %1$s</string>
 </resources>

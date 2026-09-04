@@ -25,7 +25,7 @@ object ThumbnailCache {
 
     private const val DIR_NAME = "immich_thumbnails"
     private const val MAX_DIMENSION_PX = 500
-    private const val WEBP_QUALITY = 85
+    private const val WEBP_QUALITY = 90
 
     private fun cacheDir(context: Context): File {
         val dir = File(context.filesDir, DIR_NAME)

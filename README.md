@@ -71,6 +71,20 @@ l'optimisation de batterie pour l'app (`Paramètres → Apps → Immich Widget �
 Batterie → Non restreinte`), sinon Doze peut retarder les ticks de plusieurs
 minutes au-delà de l'intervalle réglé.
 
+## 🖼️ Qualité des photos
+
+Le client télécharge `size=preview` (source Immich ~1440px, meilleure
+qualité que `size=thumbnail` ~250-400px), puis redimensionne à
+`MAX_DIMENSION_PX` (500px par défaut) en WebP qualité **90** (`ThumbnailCache.kt`).
+Partir d'une source de meilleure qualité évite le double effet de
+compression qui donnait un rendu moyen avec `size=thumbnail`.
+
+⚠️ Effet de bord attendu : la **sync initiale** (et toute nouvelle photo
+ajoutée à l'album) télécharge un fichier plus lourd depuis le serveur avant
+réduction — un peu plus de bande passante et de temps sur un gros album,
+mais le poids final en cache reste quasi identique (on redescend toujours
+à 500px derrière).
+
 ## ⚠️ Notes et limitations connues
 
 - **Vérifie les endpoints Immich** : le code cible l'API v1 (`/api/albums`,

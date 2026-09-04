@@ -175,14 +175,17 @@ class ImmichApiClient(
     }
 
     /**
-     * GET /api/assets/{id}/thumbnail?size=thumbnail -> bytes JPEG/WebP du thumbnail.
-     * On redimensionne ensuite nous-mêmes en 500x500 côté client (cf ThumbnailCache)
-     * pour garder un poids/qualité maîtrisés indépendamment de ce que sert Immich.
+     * GET /api/assets/{id}/thumbnail?size=preview -> bytes JPEG/WebP en bonne
+     * qualité (source Immich ~1440px par défaut, vs ~250-400px pour
+     * size=thumbnail). On redimensionne ensuite nous-mêmes à MAX_DIMENSION_PX
+     * côté client (cf ThumbnailCache) : partir d'une source de meilleure
+     * qualité évite le double effet de compression qui donnait un rendu
+     * moyen avec size=thumbnail.
      */
     fun downloadThumbnail(assetId: String): Result<ByteArray> {
         return try {
             val request = Request.Builder()
-                .url("${normalizedBaseUrl()}/api/assets/$assetId/thumbnail?size=thumbnail")
+                .url("${normalizedBaseUrl()}/api/assets/$assetId/thumbnail?size=preview")
                 .header("x-api-key", apiKey)
                 .get()
                 .build()

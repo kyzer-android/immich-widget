@@ -6,13 +6,13 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
 import android.widget.Button
-import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.android.material.textfield.TextInputEditText
 import com.mathieu.immichwidget.R
 import com.mathieu.immichwidget.api.ImmichAlbum
@@ -30,11 +30,14 @@ class WidgetConfigActivity : AppCompatActivity() {
     private lateinit var inputServerUrl: TextInputEditText
     private lateinit var inputApiKey: TextInputEditText
     private lateinit var btnTestConnection: Button
+    private lateinit var btnLoadAlbums: Button
     private lateinit var textConnectionStatus: TextView
     private lateinit var progressAlbums: ProgressBar
     private lateinit var recyclerAlbums: RecyclerView
     private lateinit var textSyncStatus: TextView
-    private lateinit var inputIntervalMinutes: EditText
+    private lateinit var switchCropMode: SwitchMaterial
+    private lateinit var btnClearCache: Button
+    private lateinit var textIntervalValue: TextView
     private lateinit var btnIntervalMinus: Button
     private lateinit var btnIntervalPlus: Button
     private lateinit var btnSave: Button
@@ -45,11 +48,10 @@ class WidgetConfigActivity : AppCompatActivity() {
     private var selectedAlbum: ImmichAlbum? = null
     private var appWidgetId: Int = AppWidgetManager.INVALID_APPWIDGET_ID
 
-    /** true une fois que "Tester la connexion" a réussi -> le bouton devient "Charger les albums". */
-    private var connectionVerified = false
+    /** État interne de l'intervalle en minutes (0 = désactivé) ; la vue n'affiche que le texte formaté. */
+    private var currentIntervalMinutes: Int = 0
 
     companion object {
-        private const val INTERVAL_STEP_MINUTES = 5
         private const val INTERVAL_MAX_MINUTES = 1440 // 24h
     }
 
@@ -73,11 +75,14 @@ class WidgetConfigActivity : AppCompatActivity() {
         inputServerUrl = findViewById(R.id.input_server_url)
         inputApiKey = findViewById(R.id.input_api_key)
         btnTestConnection = findViewById(R.id.btn_test_connection)
+        btnLoadAlbums = findViewById(R.id.btn_load_albums)
         textConnectionStatus = findViewById(R.id.text_connection_status)
         progressAlbums = findViewById(R.id.progress_albums)
         recyclerAlbums = findViewById(R.id.recycler_albums)
         textSyncStatus = findViewById(R.id.text_sync_status)
-        inputIntervalMinutes = findViewById(R.id.input_interval_minutes)
+        switchCropMode = findViewById(R.id.switch_crop_mode)
+        btnClearCache = findViewById(R.id.btn_clear_cache)
+        textIntervalValue = findViewById(R.id.text_interval_value)
         btnIntervalMinus = findViewById(R.id.btn_interval_minus)
         btnIntervalPlus = findViewById(R.id.btn_interval_plus)
         btnSave = findViewById(R.id.btn_save)
@@ -86,7 +91,9 @@ class WidgetConfigActivity : AppCompatActivity() {
     private fun prefillFromPrefs() {
         inputServerUrl.setText(prefs.serverUrl ?: "")
         inputApiKey.setText(prefs.apiKey ?: "")
-        inputIntervalMinutes.setText(prefs.autoChangeIntervalMinutes.toString())
+        switchCropMode.isChecked = prefs.cropMode
+        currentIntervalMinutes = prefs.autoChangeIntervalMinutes
+        updateIntervalDisplay()
     }
 
     private fun setupAlbumList() {
@@ -96,41 +103,59 @@ class WidgetConfigActivity : AppCompatActivity() {
     }
 
     private fun setupListeners() {
-        // Le bouton fait deux choses différentes selon l'état :
-        // pas encore vérifié -> teste la connexion ; déjà vérifié -> (re)charge les albums.
-        btnTestConnection.setOnClickListener {
-            if (connectionVerified) loadAlbums() else testConnection()
-        }
+        // 2 boutons distincts : chacun ne fait qu'une seule chose.
+        btnTestConnection.setOnClickListener { testConnection() }
+        btnLoadAlbums.setOnClickListener { loadAlbums() }
 
-        // Toucher à l'URL ou à la clé invalide la vérification précédente :
-        // on revient à l'état "Tester la connexion" tant que ça n'a pas été re-testé.
+        // Toucher à l'URL ou à la clé invalide la liste d'albums déjà chargée
+        // (évite de garder affichée la liste d'un autre serveur/compte par erreur).
         val resetOnEdit = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable?) = resetConnectionState()
+            override fun afterTextChanged(s: Editable?) {
+                textConnectionStatus.text = ""
+                albumAdapter.submitList(emptyList(), null)
+                selectedAlbum = null
+            }
         }
         inputServerUrl.addTextChangedListener(resetOnEdit)
         inputApiKey.addTextChangedListener(resetOnEdit)
 
-        btnIntervalMinus.setOnClickListener { adjustInterval(-INTERVAL_STEP_MINUTES) }
-        btnIntervalPlus.setOnClickListener { adjustInterval(INTERVAL_STEP_MINUTES) }
+        btnIntervalMinus.setOnClickListener { adjustInterval(increase = false) }
+        btnIntervalPlus.setOnClickListener { adjustInterval(increase = true) }
 
         btnSave.setOnClickListener { saveConfigAndSync() }
+
+        btnClearCache.setOnClickListener {
+            com.mathieu.immichwidget.cache.ThumbnailCache.clearAll(applicationContext)
+            SyncWorker.triggerImmediateSync(applicationContext)
+            textSyncStatus.text = getString(R.string.msg_cache_cleared)
+        }
     }
 
-    private fun resetConnectionState() {
-        if (!connectionVerified) return
-        connectionVerified = false
-        btnTestConnection.text = getString(R.string.btn_test_connection)
-        textConnectionStatus.text = ""
-        albumAdapter.submitList(emptyList(), null)
-        selectedAlbum = null
+    /**
+     * Incrément adaptatif : pas de 1 min tant qu'on est sous 10 min (réglage
+     * fin pour les petits intervalles), puis pas de 5 min au-delà — dans les
+     * deux sens, pour retomber proprement sur 10 en descendant depuis 15.
+     */
+    private fun adjustInterval(increase: Boolean) {
+        val next = if (increase) {
+            if (currentIntervalMinutes < 10) currentIntervalMinutes + 1 else currentIntervalMinutes + 5
+        } else {
+            if (currentIntervalMinutes <= 10) currentIntervalMinutes - 1 else currentIntervalMinutes - 5
+        }
+        currentIntervalMinutes = next.coerceIn(0, INTERVAL_MAX_MINUTES)
+        updateIntervalDisplay()
     }
 
-    private fun adjustInterval(deltaMinutes: Int) {
-        val current = inputIntervalMinutes.text?.toString()?.toIntOrNull() ?: 0
-        val next = (current + deltaMinutes).coerceIn(0, INTERVAL_MAX_MINUTES)
-        inputIntervalMinutes.setText(next.toString())
+    /** Formate en "Xh Ymin" au-delà de 60 minutes, plutôt que d'afficher un nombre de minutes à 3 chiffres. */
+    private fun updateIntervalDisplay() {
+        textIntervalValue.text = when {
+            currentIntervalMinutes <= 0 -> getString(R.string.label_interval_disabled)
+            currentIntervalMinutes < 60 -> "$currentIntervalMinutes min"
+            currentIntervalMinutes % 60 == 0 -> "${currentIntervalMinutes / 60}h"
+            else -> "${currentIntervalMinutes / 60}h ${currentIntervalMinutes % 60}min"
+        }
     }
 
     private fun currentClient(): ImmichApiClient? {
@@ -140,7 +165,6 @@ class WidgetConfigActivity : AppCompatActivity() {
         return ImmichApiClient(url, key)
     }
 
-    /** Étape 1 du bouton : vérifie juste que le serveur répond. */
     private fun testConnection() {
         val client = currentClient()
         if (client == null) {
@@ -155,8 +179,6 @@ class WidgetConfigActivity : AppCompatActivity() {
 
             result.onSuccess {
                 textConnectionStatus.text = getString(R.string.msg_connection_ok)
-                connectionVerified = true
-                btnTestConnection.text = getString(R.string.btn_load_albums)
             }.onFailure { error ->
                 textConnectionStatus.text = getString(
                     R.string.msg_connection_failed,
@@ -166,13 +188,12 @@ class WidgetConfigActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Étape 2 du bouton (une fois connectionVerified = true) : charge/recharge
-     * la liste des albums. Reste l'action du bouton tant que l'URL/clé ne
-     * changent pas, donc réappuyer ici sert aussi de "rafraîchir la liste".
-     */
     private fun loadAlbums() {
-        val client = currentClient() ?: return
+        val client = currentClient()
+        if (client == null) {
+            textConnectionStatus.text = getString(R.string.msg_connection_failed, "URL ou API key manquante")
+            return
+        }
 
         progressAlbums.visibility = View.VISIBLE
         textConnectionStatus.text = "Chargement des albums…"
@@ -199,8 +220,6 @@ class WidgetConfigActivity : AppCompatActivity() {
         val url = inputServerUrl.text?.toString()?.trim().orEmpty()
         val key = inputApiKey.text?.toString()?.trim().orEmpty()
         val album = selectedAlbum
-        val intervalMinutes = inputIntervalMinutes.text?.toString()?.toIntOrNull()
-            ?.coerceIn(0, INTERVAL_MAX_MINUTES) ?: 0
 
         if (url.isEmpty() || key.isEmpty()) {
             textSyncStatus.text = getString(R.string.msg_connection_failed, "URL ou API key manquante")
@@ -215,7 +234,8 @@ class WidgetConfigActivity : AppCompatActivity() {
         prefs.apiKey = key
         prefs.albumId = album.id
         prefs.albumName = album.albumName
-        prefs.autoChangeIntervalMinutes = intervalMinutes
+        prefs.autoChangeIntervalMinutes = currentIntervalMinutes
+        prefs.cropMode = switchCropMode.isChecked
 
         // Si on change d'album, le SyncWorker purgera automatiquement les
         // anciennes photos au prochain cycle (delta sync : purgeExcept sur
@@ -226,12 +246,12 @@ class WidgetConfigActivity : AppCompatActivity() {
         SyncWorker.triggerImmediateSync(applicationContext)
 
         // (Re)programme le changement automatique avec le nouvel intervalle.
-        // Si intervalMinutes == 0, ça annule simplement l'alarme existante.
+        // Si currentIntervalMinutes == 0, ça annule simplement l'alarme existante.
         AutoChangeScheduler.scheduleNext(applicationContext)
 
         textSyncStatus.text = getString(R.string.msg_config_saved)
 
-        // Force un refresh du widget d'origine (icône + état) sans attendre le prochain tap
+        // Force un refresh du widget d'origine (photo + mode d'affichage) sans attendre le prochain tap
         if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
             val appWidgetManager = AppWidgetManager.getInstance(applicationContext)
             WidgetUpdateHelper.showNextRandomPhoto(applicationContext, appWidgetManager, appWidgetId)

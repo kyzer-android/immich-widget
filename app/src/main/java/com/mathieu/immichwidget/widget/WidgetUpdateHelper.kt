@@ -5,8 +5,10 @@ import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
+import android.view.View
 import android.widget.RemoteViews
 import com.mathieu.immichwidget.R
+import com.mathieu.immichwidget.cache.SecurePrefs
 import com.mathieu.immichwidget.cache.ThumbnailCache
 import com.mathieu.immichwidget.config.WidgetConfigActivity
 
@@ -25,10 +27,23 @@ object WidgetUpdateHelper {
         val file = ThumbnailCache.pickRandom(context, excludeAssetId = excludeId)
         val views = buildRemoteViews(context, widgetId)
 
+        val cropMode = SecurePrefs.getInstance(context).cropMode
+
         if (file != null) {
             val bitmap = BitmapFactory.decodeFile(file.absolutePath)
             if (bitmap != null) {
-                views.setImageViewBitmap(R.id.widget_image, bitmap)
+                // Une seule des deux ImageView reçoit le bitmap et devient visible ;
+                // l'autre est masquée. RemoteViews ne permet pas de changer le
+                // scaleType d'une vue existante, d'où les 2 vues préparées dans le layout.
+                if (cropMode) {
+                    views.setImageViewBitmap(R.id.widget_image_crop, bitmap)
+                    views.setViewVisibility(R.id.widget_image_crop, View.VISIBLE)
+                    views.setViewVisibility(R.id.widget_image_fit, View.GONE)
+                } else {
+                    views.setImageViewBitmap(R.id.widget_image_fit, bitmap)
+                    views.setViewVisibility(R.id.widget_image_fit, View.VISIBLE)
+                    views.setViewVisibility(R.id.widget_image_crop, View.GONE)
+                }
                 currentAssetIdByWidget[widgetId] = file.nameWithoutExtension
             }
         }
@@ -54,7 +69,7 @@ object WidgetUpdateHelper {
     fun buildRemoteViews(context: Context, widgetId: Int): RemoteViews {
         val views = RemoteViews(context.packageName, R.layout.widget_photo)
 
-        // Tap sur la photo -> broadcast au provider pour changer de photo
+        // Tap sur la zone photo (conteneur commun aux 2 ImageView) -> broadcast au provider
         val nextPhotoIntent = Intent(context, PhotoWidgetProvider::class.java).apply {
             action = PhotoWidgetProvider.ACTION_NEXT_PHOTO
             putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
@@ -65,7 +80,7 @@ object WidgetUpdateHelper {
             nextPhotoIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-        views.setOnClickPendingIntent(R.id.widget_image, nextPhotoPendingIntent)
+        views.setOnClickPendingIntent(R.id.widget_click_area, nextPhotoPendingIntent)
 
         // Tap sur l'icône ⚙️ -> ouvre l'activité de config
         val configIntent = Intent(context, WidgetConfigActivity::class.java).apply {

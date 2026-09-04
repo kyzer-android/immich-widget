@@ -27,6 +27,7 @@
             android:id="@+id/text_album_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:textColor="@color/config_text"
             android:textSize="16sp"
             android:textStyle="bold" />
 
@@ -34,8 +35,8 @@
             android:id="@+id/text_album_count"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="13sp"
-            android:alpha="0.7" />
+            android:textColor="@color/config_text_secondary"
+            android:textSize="13sp" />
     </LinearLayout>
 
 </LinearLayout>

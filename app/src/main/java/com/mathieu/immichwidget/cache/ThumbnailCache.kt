@@ -7,17 +7,24 @@ import java.io.File
 import java.io.FileOutputStream
 
 /**
- * Cache local des thumbnails, en fichiers WebP 500x500 dans le stockage
- * interne de l'appli (déjà sandboxé par Android, pas besoin de permissions
- * de stockage supplémentaires).
+ * Cache local des thumbnails, en fichiers WebP dans le stockage interne de
+ * l'appli (déjà sandboxé par Android, pas besoin de permissions de
+ * stockage supplémentaires).
  *
  * Le nom de fichier == l'assetId Immich -> pas besoin d'index séparé,
  * la liste des fichiers présents EST la liste des photos en cache.
+ *
+ * IMPORTANT : on ne recadre JAMAIS l'image ici. On redimensionne juste pour
+ * que son plus grand côté ne dépasse pas MAX_DIMENSION_PX, en conservant le
+ * ratio d'origine intact. Le choix "recadrer / image entière" est un
+ * réglage d'AFFICHAGE (scaleType côté widget, cf WidgetUpdateHelper) — s'il
+ * était appliqué ici, l'info hors-cadre serait perdue définitivement et le
+ * mode "image entière" n'aurait plus aucun sens.
  */
 object ThumbnailCache {
 
     private const val DIR_NAME = "immich_thumbnails"
-    private const val TARGET_SIZE_PX = 500
+    private const val MAX_DIMENSION_PX = 500
     private const val WEBP_QUALITY = 85
 
     private fun cacheDir(context: Context): File {
@@ -40,8 +47,8 @@ object ThumbnailCache {
         fileFor(context, assetId).exists()
 
     /**
-     * Décode les bytes bruts du thumbnail Immich, recadre en carré 500x500
-     * (center-crop, cohérent avec le rendu centerCrop du widget), et
+     * Décode les bytes bruts du thumbnail Immich, redimensionne SANS
+     * recadrer (le plus grand côté est ramené à MAX_DIMENSION_PX), et
      * sauvegarde en WebP.
      */
     fun saveThumbnail(context: Context, assetId: String, rawBytes: ByteArray): Boolean {
@@ -49,7 +56,7 @@ object ThumbnailCache {
             val original = BitmapFactory.decodeByteArray(rawBytes, 0, rawBytes.size)
                 ?: return false
 
-            val squared = centerCropToSquare(original, TARGET_SIZE_PX)
+            val resized = scaleToFit(original, MAX_DIMENSION_PX)
             val file = fileFor(context, assetId)
 
             FileOutputStream(file).use { out ->
@@ -59,11 +66,11 @@ object ThumbnailCache {
                     @Suppress("DEPRECATION")
                     Bitmap.CompressFormat.WEBP
                 }
-                squared.compress(format, WEBP_QUALITY, out)
+                resized.compress(format, WEBP_QUALITY, out)
             }
 
-            if (squared !== original) original.recycle()
-            squared.recycle()
+            if (resized !== original) original.recycle()
+            resized.recycle()
             true
         } catch (e: Exception) {
             false
@@ -103,21 +110,26 @@ object ThumbnailCache {
     fun cacheSizeBytes(context: Context): Long =
         cacheDir(context).listFiles()?.sumOf { it.length() } ?: 0L
 
-    private fun centerCropToSquare(source: Bitmap, targetSize: Int): Bitmap {
-        // 1) Scale pour que la plus petite dimension couvre targetSize
-        val scale = targetSize.toFloat() / minOf(source.width, source.height)
+    /**
+     * Vide entièrement le cache de thumbnails. Utile après un correctif qui
+     * change la façon dont les images sont traitées (ex: passage crop -> pas
+     * de recadrage) : le delta sync ne retélécharge JAMAIS une photo dont
+     * l'ID est déjà en cache, donc sans ce vidage manuel les anciennes
+     * vignettes (potentiellement traitées avec l'ancien code) restent
+     * coincées indéfiniment.
+     */
+    fun clearAll(context: Context) {
+        cacheDir(context).listFiles()?.forEach { it.delete() }
+    }
+
+    /** Redimensionne pour que max(largeur, hauteur) == maxDimension, ratio conservé, sans recadrage. */
+    private fun scaleToFit(source: Bitmap, maxDimension: Int): Bitmap {
+        val longSide = maxOf(source.width, source.height)
+        if (longSide <= maxDimension) return source // déjà assez petit, pas besoin de retraiter
+
+        val scale = maxDimension.toFloat() / longSide
         val scaledWidth = (source.width * scale).toInt().coerceAtLeast(1)
         val scaledHeight = (source.height * scale).toInt().coerceAtLeast(1)
-        val scaled = Bitmap.createScaledBitmap(source, scaledWidth, scaledHeight, true)
-
-        // 2) Crop centré targetSize x targetSize
-        val x = ((scaledWidth - targetSize) / 2).coerceAtLeast(0)
-        val y = ((scaledHeight - targetSize) / 2).coerceAtLeast(0)
-        val cropWidth = minOf(targetSize, scaledWidth)
-        val cropHeight = minOf(targetSize, scaledHeight)
-
-        val cropped = Bitmap.createBitmap(scaled, x, y, cropWidth, cropHeight)
-        if (scaled !== cropped) scaled.recycle()
-        return cropped
+        return Bitmap.createScaledBitmap(source, scaledWidth, scaledHeight, true)
     }
 }

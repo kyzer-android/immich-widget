@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    IMPORTANT (limitation RemoteViews) : seuls certains ViewGroups sont autorisés
-    dans un widget (FrameLayout, LinearLayout, RelativeLayout, GridLayout).
-    On utilise FrameLayout pour superposer la photo et l'icône settings.
+    2 ImageView superposées à la même position (crop / fit) : RemoteViews ne
+    permet pas de changer le scaleType d'une ImageView existante par code (pas
+    de setter compatible avec setInt/setBoolean/etc.), donc on prépare les
+    deux variantes dans le layout et on bascule leur visibilité côté code
+    (WidgetUpdateHelper) selon le mode choisi par l'utilisateur.
+
+    widget_click_area regroupe tout le contenu cliquable : le PendingIntent
+    "photo suivante" est posé sur ce conteneur, pas sur chaque ImageView
+    individuellement.
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
@@ -10,13 +16,29 @@
     android:background="@drawable/widget_background"
     android:padding="4dp">
 
-    <!-- Zone principale : tap = photo aléatoire suivante -->
-    <ImageView
-        android:id="@+id/widget_image"
+    <FrameLayout
+        android:id="@+id/widget_click_area"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scaleType="centerCrop"
-        android:contentDescription="@string/widget_label" />
+        android:layout_height="match_parent">
+
+        <!-- Mode "crop" : remplit tout le cadre, recadre si besoin -->
+        <ImageView
+            android:id="@+id/widget_image_crop"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:contentDescription="@string/widget_label" />
+
+        <!-- Mode "fit" : image entière visible, bandes si le ratio ne correspond pas -->
+        <ImageView
+            android:id="@+id/widget_image_fit"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="fitCenter"
+            android:visibility="gone"
+            android:contentDescription="@string/widget_label" />
+
+    </FrameLayout>
 
     <!-- Petite icône ⚙️ en coin bas-droit : tap = ouvre la config -->
     <FrameLayout

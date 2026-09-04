@@ -33,6 +33,28 @@ dépendance à une version précise de leur client officiel.
    album, ex: ~2000 photos avec 8 téléchargements en parallèle)
 6. Une fois la sync terminée, **tape sur la photo** pour en afficher une nouvelle
 
+## 🎨 Écran de config — dernières évolutions
+
+- **Footer fixe** : l'intervalle auto + le bouton "Enregistrer" sont hors du
+  `ScrollView`, donc toujours visibles à l'écran sans avoir à scroller.
+- **Intervalle formaté** : affiché en "Xh Ymin" au-delà de 60 min plutôt
+  qu'en minutes brutes (ex: "1h 10min" au lieu de "70 min").
+- **Thème sombre forcé** (`Theme.Material3.Dark.NoActionBar`, plus
+  `DayNight`) avec couleurs de texte explicites — évite le texte peu
+  contrasté selon le thème système/constructeur.
+- **2 boutons distincts** : "Tester la connexion" et "Charger les albums"
+  sont deux actions séparées (au lieu d'un bouton à 2 états).
+- **Mode d'affichage crop/fit** (switch dans les params) :
+  - *Recadré* (par défaut, coché) : l'image remplit tout le cadre du widget,
+    quitte à couper les bords — comportement d'origine.
+  - *Image entière* (décoché) : toute la photo est visible, avec des bandes
+    si son ratio ne correspond pas à celui du widget.
+  - **Important** : le cache ne recadre plus JAMAIS l'image à la synchro
+    (juste un redimensionnement qui conserve le cadre complet) — le choix
+    crop/fit est appliqué uniquement à l'affichage (2 `ImageView`
+    superposées dans le widget, une seule visible à la fois selon le
+    réglage). Changer ce réglage prend effet immédiatement sans re-sync.
+
 ## ⏱️ Changement automatique de photo
 
 Dans les params, un champ avec `−` / `+` (pas de 5 min, 0 à 1440) permet de

@@ -23,6 +23,7 @@ class SecurePrefs private constructor(private val prefs: SharedPreferences) {
         private const val KEY_ALBUM_NAME = "album_name"
         private const val KEY_LAST_SYNC_MILLIS = "last_sync_millis"
         private const val KEY_AUTO_INTERVAL_MINUTES = "auto_interval_minutes"
+        private const val KEY_CROP_MODE = "crop_mode"
 
         @Volatile
         private var instance: SecurePrefs? = null
@@ -73,6 +74,11 @@ class SecurePrefs private constructor(private val prefs: SharedPreferences) {
     var autoChangeIntervalMinutes: Int
         get() = prefs.getInt(KEY_AUTO_INTERVAL_MINUTES, 0)
         set(value) = prefs.edit().putInt(KEY_AUTO_INTERVAL_MINUTES, value).apply()
+
+    /** true = image recadrée pour remplir le cadre (comportement d'origine) ; false = image entière visible. */
+    var cropMode: Boolean
+        get() = prefs.getBoolean(KEY_CROP_MODE, true)
+        set(value) = prefs.edit().putBoolean(KEY_CROP_MODE, value).apply()
 
     fun isConfigured(): Boolean =
         !serverUrl.isNullOrBlank() && !apiKey.isNullOrBlank() && !albumId.isNullOrBlank()

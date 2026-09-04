@@ -5,4 +5,8 @@
     <color name="primary">#3F51B5</color>
     <color name="primary_dark">#303F9F</color>
     <color name="ic_launcher_background">#3F51B5</color>
+    <color name="config_background">#121212</color>
+    <color name="config_surface">#1E1E1E</color>
+    <color name="config_text">#FFFFFF</color>
+    <color name="config_text_secondary">#B3FFFFFF</color>
 </resources>

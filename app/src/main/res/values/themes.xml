@@ -1,7 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.ImmichWidget" parent="Theme.Material3.DayNight.NoActionBar">
+    <!--
+        Thème sombre forcé (pas DayNight) : l'écran de config doit rester
+        lisible quel que soit le thème système. On fixe explicitement
+        colorSurface/colorOnSurface/textColor* plutôt que de compter sur les
+        valeurs par défaut de Material3, qui peuvent donner un texte peu
+        contrasté selon le thème système/constructeur (cause du bug signalé).
+    -->
+    <style name="Theme.ImmichWidget" parent="Theme.Material3.Dark.NoActionBar">
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryDark">@color/primary_dark</item>
+        <item name="colorSurface">@color/config_surface</item>
+        <item name="colorOnSurface">@color/config_text</item>
+        <item name="colorOnSurfaceVariant">@color/config_text_secondary</item>
+        <item name="android:windowBackground">@color/config_background</item>
+        <item name="android:textColorPrimary">@color/config_text</item>
+        <item name="android:textColorSecondary">@color/config_text_secondary</item>
+        <item name="android:textColorHint">@color/config_text_secondary</item>
+        <item name="materialButtonStyle">@style/Widget.ImmichWidget.Button</item>
+    </style>
+
+    <!--
+        Style de bouton forcé explicitement : sans ça, Material3 calcule la
+        couleur du texte à partir de la palette générée automatiquement, ce
+        qui donnait du gris peu contrasté faute de rôles de couleur complets
+        (colorOnPrimary, etc.) définis dans le thème.
+    -->
+    <style name="Widget.ImmichWidget.Button" parent="Widget.Material3.Button">
+        <item name="backgroundTint">@color/primary</item>
+        <item name="android:textColor">@color/config_text</item>
     </style>
 </resources>

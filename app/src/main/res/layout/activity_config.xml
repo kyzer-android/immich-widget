@@ -1,96 +1,167 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<!--
+    Structure : LinearLayout vertical racine = [ScrollView poids 1] + [footer fixe].
+    Le footer (intervalle + Enregistrer) est HORS du ScrollView, donc toujours
+    visible à l'écran sans avoir à scroller, quelle que soit la taille de la
+    liste d'albums au-dessus.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/config_background">
 
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/label_server_url">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/input_server_url"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textUri"
+                    android:textColor="@color/config_text" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:hint="@string/label_api_key">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/input_api_key"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPassword"
+                    android:textColor="@color/config_text" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- 2 boutons distincts (au lieu d'un bouton à 2 états) : chacun fait une seule chose -->
+            <Button
+                android:id="@+id/btn_test_connection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="@string/btn_test_connection" />
+
+            <Button
+                android:id="@+id/btn_load_albums"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/btn_load_albums" />
+
+            <TextView
+                android:id="@+id/text_connection_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textAlignment="center"
+                android:textColor="@color/config_text" />
+
+            <!-- Choix d'affichage : image recadrée (remplit le cadre) ou entière (pas de recadrage) -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="@string/label_display_mode"
+                android:textColor="@color/config_text"
+                android:textStyle="bold" />
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switch_crop_mode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:checked="true"
+                android:text="@string/label_crop_switch"
+                android:textColor="@color/config_text" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/hint_crop_switch"
+                android:textColor="@color/config_text_secondary"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/btn_clear_cache"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/btn_clear_cache" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="@string/label_choose_album"
+                android:textColor="@color/config_text"
+                android:textStyle="bold" />
+
+            <ProgressBar
+                android:id="@+id/progress_albums"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:indeterminate="true"
+                android:visibility="gone" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recycler_albums"
+                android:layout_width="match_parent"
+                android:layout_height="280dp"
+                android:layout_marginTop="8dp" />
+
+            <TextView
+                android:id="@+id/text_sync_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textAlignment="center"
+                android:textColor="@color/config_text" />
+
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Footer fixe, toujours visible : intervalle auto + bouton Enregistrer -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="20dp">
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="@string/label_server_url">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/input_server_url"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="textUri" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:hint="@string/label_api_key">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/input_api_key"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="textPassword" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <Button
-            android:id="@+id/btn_test_connection"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="@string/btn_test_connection" />
-
-        <TextView
-            android:id="@+id/text_connection_status"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:textAlignment="center" />
+        android:background="@color/config_surface"
+        android:elevation="8dp"
+        android:padding="16dp">
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:text="@string/label_choose_album"
-            android:textStyle="bold" />
-
-        <ProgressBar
-            android:id="@+id/progress_albums"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:indeterminate="true"
-            android:visibility="gone" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recycler_albums"
-            android:layout_width="match_parent"
-            android:layout_height="300dp"
-            android:layout_marginTop="8dp" />
-
-        <TextView
-            android:id="@+id/text_sync_status"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:textAlignment="center" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
             android:text="@string/label_auto_interval"
+            android:textColor="@color/config_text"
             android:textStyle="bold" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:orientation="horizontal"
-            android:gravity="center">
+            android:gravity="center"
+            android:orientation="horizontal">
 
             <Button
                 android:id="@+id/btn_interval_minus"
@@ -99,15 +170,16 @@
                 android:text="−"
                 android:textSize="20sp" />
 
-            <EditText
-                android:id="@+id/input_interval_minutes"
-                android:layout_width="80dp"
+            <!-- Affichage formaté (ex: "1h 10min"), pas un champ éditable directement -->
+            <TextView
+                android:id="@+id/text_interval_value"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="12dp"
+                android:layout_weight="1"
                 android:gravity="center"
-                android:inputType="number"
-                android:maxLength="4"
-                android:text="0" />
+                android:text="@string/label_interval_disabled"
+                android:textColor="@color/config_text"
+                android:textSize="16sp" />
 
             <Button
                 android:id="@+id/btn_interval_plus"
@@ -122,8 +194,9 @@
             android:id="@+id/btn_save"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="12dp"
             android:text="@string/btn_save" />
 
     </LinearLayout>
-</ScrollView>
+
+</LinearLayout>

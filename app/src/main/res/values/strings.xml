@@ -15,5 +15,11 @@
     <string name="msg_no_album_selected">Sélectionne un album avant d\'enregistrer</string>
     <string name="msg_sync_in_progress">Synchronisation en cours…</string>
     <string name="msg_config_saved">Configuration enregistrée, sync lancée 🚀</string>
-    <string name="label_auto_interval">Changement automatique (minutes, 0 = désactivé)</string>
+    <string name="label_auto_interval">Changement automatique</string>
+    <string name="label_interval_disabled">Désactivé</string>
+    <string name="label_display_mode">Affichage de la photo</string>
+    <string name="label_crop_switch">Recadrer l\'image (remplit le cadre)</string>
+    <string name="hint_crop_switch">Désactivé : l\'image entière est visible, avec des bandes si son format ne correspond pas au widget</string>
+    <string name="btn_clear_cache">Vider le cache photos (force un re-téléchargement)</string>
+    <string name="msg_cache_cleared">Cache vidé, nouveau téléchargement lancé 🗑️</string>
 </resources>

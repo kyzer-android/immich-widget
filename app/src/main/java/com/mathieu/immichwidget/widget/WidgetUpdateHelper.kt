@@ -211,9 +211,11 @@ object WidgetUpdateHelper {
 
         // Icône ⛶ -> plein écran, différent selon le mode actif
         if (mode == "MEMORY") {
-            val startIndex = currentMemoryYearIndexByWidget[widgetId] ?: 0
+            val groups = MemoryCache.loadIndex(context)
+            val yearIndex = currentMemoryYearIndexByWidget[widgetId] ?: 0
+            val startYear = groups.getOrNull(yearIndex)?.year ?: 0
             val fullscreenIntent = Intent(context, MemoryFullscreenActivity::class.java).apply {
-                putExtra(MemoryFullscreenActivity.EXTRA_START_YEAR_INDEX, startIndex)
+                putExtra(MemoryFullscreenActivity.EXTRA_START_YEAR, startYear)
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK
             }
             val fullscreenPendingIntent = PendingIntent.getActivity(

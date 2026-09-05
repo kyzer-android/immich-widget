@@ -25,7 +25,15 @@
     <string name="label_display_mode">Affichage de la photo</string>
     <string name="label_crop_switch">Recadrer l\'image (remplit le cadre)</string>
     <string name="hint_crop_switch">Désactivé : l\'image entière est visible, avec des bandes si son format ne correspond pas au widget</string>
-    <string name="btn_clear_cache">Vider le cache photos (force un re-téléchargement)</string>
+    <string name="btn_clear_cache">Régénérer l\'échantillon maintenant</string>
+    <string name="label_sample_size">Taille de l\'échantillon</string>
+    <string name="hint_sample_size">Nombre de photos tirées au hasard dans l\'album (utile pour les albums de plusieurs milliers de photos)</string>
+    <string name="label_sync_frequency">Fréquence de renouvellement</string>
+    <string name="hint_sync_frequency">Un nouveau tirage aléatoire remplace l\'ancien à cette fréquence</string>
+    <string name="format_days">%1$d j</string>
+    <string name="label_network">Réseau</string>
+    <string name="label_wifi_only_switch">Télécharger en Wi-Fi uniquement</string>
+    <string name="hint_wifi_only_switch">Les photos peuvent être volumineuses — évite de consommer des données mobiles</string>
     <string name="msg_cache_cleared">Cache vidé, nouveau téléchargement lancé 🗑️</string>
     <string name="label_current_album">Album actuel : %1$s</string>
 

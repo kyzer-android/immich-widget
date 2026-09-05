@@ -7,10 +7,13 @@ import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.mathieu.immichwidget.R
 import com.mathieu.immichwidget.api.FreeToUseApiClient
+import com.mathieu.immichwidget.api.ImmichApiClient
+import com.mathieu.immichwidget.cache.LocationCache
 import com.mathieu.immichwidget.cache.SecurePrefs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -136,6 +139,50 @@ abstract class BaseFullscreenActivity : AppCompatActivity() {
             release()
         }
         mediaPlayer = null
+    }
+
+    /**
+     * Charge et affiche "Ville, Pays" pour l'asset donné (récupéré depuis
+     * exifInfo via GET /api/assets/{id}, déjà géocodé côté serveur Immich —
+     * pas d'API tierce nécessaire). Mis en cache mémoire pour éviter de
+     * rappeler l'API en revoyant la même photo dans la session.
+     *
+     * Le tag posé sur la vue sert de garde-fou anti-race-condition : si
+     * l'utilisateur a déjà navigué vers une autre photo au moment où la
+     * réponse arrive, on ignore le résultat plutôt que d'afficher une
+     * localisation qui ne correspond plus à la photo affichée.
+     */
+    protected fun loadAndShowLocation(assetId: String, locationView: TextView) {
+        locationView.tag = assetId
+
+        val cached = LocationCache.get(assetId)
+        if (cached != null) {
+            applyLocationText(locationView, assetId, cached)
+            return
+        }
+
+        locationView.text = ""
+        locationView.visibility = View.GONE
+
+        lifecycleScope.launch {
+            val prefs = SecurePrefs.getInstance(applicationContext)
+            val url = prefs.serverUrl
+            val key = prefs.apiKey
+            if (url.isNullOrBlank() || key.isNullOrBlank()) return@launch
+
+            val result = withContext(Dispatchers.IO) {
+                ImmichApiClient(url, key).getAssetLocation(assetId)
+            }
+            val location = result.getOrNull() ?: ""
+            LocationCache.put(assetId, location)
+            applyLocationText(locationView, assetId, location)
+        }
+    }
+
+    private fun applyLocationText(locationView: TextView, assetId: String, location: String) {
+        if (locationView.tag != assetId) return // l'utilisateur a déjà changé de photo entre-temps
+        locationView.text = location
+        locationView.visibility = if (location.isBlank()) View.GONE else View.VISIBLE
     }
 
     override fun onDestroy() {

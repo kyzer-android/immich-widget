@@ -61,6 +61,7 @@ class MemorySyncWorker(
 
             val request = PeriodicWorkRequestBuilder<MemorySyncWorker>(24, TimeUnit.HOURS)
                 .setInitialDelay(initialDelayMs, TimeUnit.MILLISECONDS)
+                .setConstraints(SyncConstraints.build(context))
                 .build()
             WorkManager.getInstance(context).enqueueUniquePeriodicWork(
                 UNIQUE_WORK_NAME,
@@ -77,7 +78,9 @@ class MemorySyncWorker(
          * avec la 1ère (clearAll()/saveIndex() en parallèle).
          */
         fun triggerImmediateSync(context: Context) {
-            val request = OneTimeWorkRequestBuilder<MemorySyncWorker>().build()
+            val request = OneTimeWorkRequestBuilder<MemorySyncWorker>()
+                .setConstraints(SyncConstraints.build(context))
+                .build()
             WorkManager.getInstance(context).enqueueUniqueWork(
                 "immich_widget_memory_immediate_sync",
                 androidx.work.ExistingWorkPolicy.KEEP,
@@ -94,6 +97,7 @@ class MemorySyncWorker(
         private fun scheduleHourlyRetry(context: Context) {
             val request = OneTimeWorkRequestBuilder<MemorySyncWorker>()
                 .setInitialDelay(1, TimeUnit.HOURS)
+                .setConstraints(SyncConstraints.build(context))
                 .build()
             WorkManager.getInstance(context).enqueueUniqueWork(
                 RETRY_WORK_NAME,

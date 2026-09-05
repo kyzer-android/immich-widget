@@ -25,7 +25,15 @@
     <string name="label_display_mode">Photo display</string>
     <string name="label_crop_switch">Crop image (fill the frame)</string>
     <string name="hint_crop_switch">Off: the whole image is visible, with bars if its aspect ratio doesn\'t match the widget</string>
-    <string name="btn_clear_cache">Clear photo cache (forces a re-download)</string>
+    <string name="btn_clear_cache">Regenerate sample now</string>
+    <string name="label_sample_size">Sample size</string>
+    <string name="hint_sample_size">Number of photos randomly drawn from the album (useful for albums with thousands of photos)</string>
+    <string name="label_sync_frequency">Refresh frequency</string>
+    <string name="hint_sync_frequency">A new random draw replaces the previous one at this frequency</string>
+    <string name="format_days">%1$d d</string>
+    <string name="label_network">Network</string>
+    <string name="label_wifi_only_switch">Download over Wi-Fi only</string>
+    <string name="hint_wifi_only_switch">Photos can be large — avoids using mobile data</string>
     <string name="msg_cache_cleared">Cache cleared, new download started 🗑️</string>
     <string name="label_current_album">Current album: %1$s</string>
 

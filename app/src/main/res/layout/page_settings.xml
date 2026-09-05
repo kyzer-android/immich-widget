@@ -193,5 +193,30 @@
             android:textColor="@color/config_text_secondary"
             android:textSize="12sp" />
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="@string/label_network"
+            android:textColor="@color/config_text"
+            android:textStyle="bold" />
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/switch_wifi_only"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:checked="false"
+            android:text="@string/label_wifi_only_switch"
+            android:textColor="@color/config_text" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/hint_wifi_only_switch"
+            android:textColor="@color/config_text_secondary"
+            android:textSize="12sp" />
+
     </LinearLayout>
 </ScrollView>

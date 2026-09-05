@@ -26,7 +26,6 @@ import com.mathieu.immichwidget.R
 import com.mathieu.immichwidget.api.ImmichAlbum
 import com.mathieu.immichwidget.api.ImmichApiClient
 import com.mathieu.immichwidget.cache.SecurePrefs
-import com.mathieu.immichwidget.cache.ThumbnailCache
 import com.mathieu.immichwidget.sync.AutoChangeScheduler
 import com.mathieu.immichwidget.sync.MemorySyncWorker
 import com.mathieu.immichwidget.sync.SyncWorker
@@ -77,6 +76,10 @@ class WidgetConfigActivity : AppCompatActivity() {
     private var currentSlideDurationSeconds = 5
     private var textAlbumSlideDurationValue: TextView? = null
     private var currentAlbumSlideDurationSeconds = 0
+    private var textSampleSizeValue: TextView? = null
+    private var currentSampleSize = 200
+    private var textSyncFrequencyValue: TextView? = null
+    private var currentSyncFrequencyDays = 7
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -121,6 +124,8 @@ class WidgetConfigActivity : AppCompatActivity() {
 
     // ================= PAGE PARAMÈTRES =================
 
+    private var switchWifiOnly: SwitchMaterial? = null
+
     private fun bindSettingsPage(view: View) {
         bannerBatteryWarning = view.findViewById(R.id.banner_battery_warning)
         btnOpenBatterySettings = view.findViewById(R.id.btn_open_battery_settings)
@@ -134,10 +139,12 @@ class WidgetConfigActivity : AppCompatActivity() {
         textIntervalValue = view.findViewById(R.id.text_interval_value)
         val btnIntervalMinus = view.findViewById<Button>(R.id.btn_interval_minus)
         val btnIntervalPlus = view.findViewById<Button>(R.id.btn_interval_plus)
+        switchWifiOnly = view.findViewById(R.id.switch_wifi_only)
 
         inputServerUrl?.setText(prefs.serverUrl ?: "")
         inputApiKey?.setText(prefs.apiKey ?: "")
         switchCropMode?.isChecked = prefs.cropMode
+        switchWifiOnly?.isChecked = prefs.wifiOnlySync
         currentIntervalMinutes = prefs.autoChangeIntervalMinutes
         updateIntervalDisplay()
 
@@ -248,11 +255,27 @@ class WidgetConfigActivity : AppCompatActivity() {
         textAlbumSlideDurationValue = view.findViewById(R.id.text_album_slide_duration_value)
         val btnAlbumSlideDurationMinus = view.findViewById<Button>(R.id.btn_album_slide_duration_minus)
         val btnAlbumSlideDurationPlus = view.findViewById<Button>(R.id.btn_album_slide_duration_plus)
+        textSampleSizeValue = view.findViewById(R.id.text_sample_size_value)
+        val btnSampleSizeMinus = view.findViewById<Button>(R.id.btn_sample_size_minus)
+        val btnSampleSizePlus = view.findViewById<Button>(R.id.btn_sample_size_plus)
+        textSyncFrequencyValue = view.findViewById(R.id.text_sync_frequency_value)
+        val btnSyncFrequencyMinus = view.findViewById<Button>(R.id.btn_sync_frequency_minus)
+        val btnSyncFrequencyPlus = view.findViewById<Button>(R.id.btn_sync_frequency_plus)
 
         currentAlbumSlideDurationSeconds = prefs.albumSlideDurationSeconds
         updateAlbumSlideDurationDisplay()
         btnAlbumSlideDurationMinus.setOnClickListener { adjustAlbumSlideDuration(-1) }
         btnAlbumSlideDurationPlus.setOnClickListener { adjustAlbumSlideDuration(1) }
+
+        currentSampleSize = prefs.albumSampleSize
+        updateSampleSizeDisplay()
+        btnSampleSizeMinus.setOnClickListener { adjustSampleSize(-50) }
+        btnSampleSizePlus.setOnClickListener { adjustSampleSize(50) }
+
+        currentSyncFrequencyDays = prefs.albumSyncFrequencyDays
+        updateSyncFrequencyDisplay()
+        btnSyncFrequencyMinus.setOnClickListener { adjustSyncFrequency(-1) }
+        btnSyncFrequencyPlus.setOnClickListener { adjustSyncFrequency(1) }
 
         albumAdapter = AlbumListAdapter { album -> selectedAlbum = album }
         recyclerAlbums?.layoutManager = LinearLayoutManager(this)
@@ -273,7 +296,6 @@ class WidgetConfigActivity : AppCompatActivity() {
 
         btnLoadAlbums?.setOnClickListener { loadAlbums() }
         btnClearCache?.setOnClickListener {
-            ThumbnailCache.clearAll(applicationContext)
             SyncWorker.triggerImmediateSync(applicationContext)
             textSyncStatus?.text = getString(R.string.msg_cache_cleared)
         }
@@ -363,6 +385,24 @@ class WidgetConfigActivity : AppCompatActivity() {
         }
     }
 
+    private fun adjustSampleSize(delta: Int) {
+        currentSampleSize = (currentSampleSize + delta).coerceIn(10, 2000)
+        updateSampleSizeDisplay()
+    }
+
+    private fun updateSampleSizeDisplay() {
+        textSampleSizeValue?.text = getString(R.string.label_photo_count, currentSampleSize)
+    }
+
+    private fun adjustSyncFrequency(deltaDays: Int) {
+        currentSyncFrequencyDays = (currentSyncFrequencyDays + deltaDays).coerceIn(1, 30)
+        updateSyncFrequencyDisplay()
+    }
+
+    private fun updateSyncFrequencyDisplay() {
+        textSyncFrequencyValue?.text = getString(R.string.format_days, currentSyncFrequencyDays)
+    }
+
     // ================= SAUVEGARDE GLOBALE =================
 
     private fun saveAll() {
@@ -392,6 +432,9 @@ class WidgetConfigActivity : AppCompatActivity() {
         prefs.audioMuted = switchAudioDefault?.isChecked?.not() ?: false
         prefs.memorySlideDurationSeconds = currentSlideDurationSeconds
         prefs.albumSlideDurationSeconds = currentAlbumSlideDurationSeconds
+        prefs.wifiOnlySync = switchWifiOnly?.isChecked ?: false
+        prefs.albumSampleSize = currentSampleSize
+        prefs.albumSyncFrequencyDays = currentSyncFrequencyDays
         if (!albumId.isNullOrBlank() && !albumName.isNullOrBlank()) {
             prefs.albumId = albumId
             prefs.albumName = albumName

@@ -35,6 +35,7 @@ class FullscreenPhotoActivity : BaseFullscreenActivity() {
     private lateinit var imageView: ImageView
     private lateinit var backgroundImageView: ImageView
     private lateinit var dateView: TextView
+    private lateinit var locationView: TextView
     private lateinit var muteIcon: ImageView
     private lateinit var orderedAssets: List<OrderedAsset>
     private var currentIndex: Int = 0
@@ -53,6 +54,7 @@ class FullscreenPhotoActivity : BaseFullscreenActivity() {
         imageView = findViewById(R.id.fullscreen_image)
         backgroundImageView = findViewById(R.id.fullscreen_background)
         dateView = findViewById(R.id.fullscreen_date)
+        locationView = findViewById(R.id.fullscreen_location)
         muteIcon = findViewById(R.id.fullscreen_mute)
         val closeIcon: ImageView = findViewById(R.id.fullscreen_close)
 
@@ -62,8 +64,12 @@ class FullscreenPhotoActivity : BaseFullscreenActivity() {
 
         // On ne garde que les entrées encore réellement en cache : l'index peut
         // légèrement dater si une sync a tourné entre-temps.
+        // Mélange aléatoire généré une fois à l'ouverture : le swipe navigue
+        // ensuite dans CET ordre (stable pendant toute la session), pas un
+        // nouveau tirage à chaque swipe.
         orderedAssets = AssetOrderIndex.load(applicationContext)
             .filter { ThumbnailCache.isCached(applicationContext, it.id) }
+            .shuffled()
 
         if (orderedAssets.isEmpty()) {
             finish()
@@ -123,6 +129,7 @@ class FullscreenPhotoActivity : BaseFullscreenActivity() {
             backgroundImageView.setImageBitmap(BlurUtils.createBlurredBackground(bitmap))
         }
         dateView.text = formatDate(asset.date)
+        loadAndShowLocation(asset.id, locationView)
     }
 
     /** Formate en toutes lettres dans la langue de l'appareil (ex: "5 septembre 2023" / "September 5, 2023"). */

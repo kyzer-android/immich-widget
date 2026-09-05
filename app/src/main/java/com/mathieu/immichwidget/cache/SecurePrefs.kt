@@ -29,6 +29,9 @@ class SecurePrefs private constructor(private val prefs: SharedPreferences) {
         private const val KEY_AUDIO_MUTED = "audio_muted"
         private const val KEY_MEMORY_SLIDE_DURATION_SECONDS = "memory_slide_duration_seconds"
         private const val KEY_ALBUM_SLIDE_DURATION_SECONDS = "album_slide_duration_seconds"
+        private const val KEY_WIFI_ONLY_SYNC = "wifi_only_sync"
+        private const val KEY_ALBUM_SAMPLE_SIZE = "album_sample_size"
+        private const val KEY_ALBUM_SYNC_FREQUENCY_DAYS = "album_sync_frequency_days"
 
         @Volatile
         private var instance: SecurePrefs? = null
@@ -108,6 +111,21 @@ class SecurePrefs private constructor(private val prefs: SharedPreferences) {
     var albumSlideDurationSeconds: Int
         get() = prefs.getInt(KEY_ALBUM_SLIDE_DURATION_SECONDS, 0)
         set(value) = prefs.edit().putInt(KEY_ALBUM_SLIDE_DURATION_SECONDS, value).apply()
+
+    /** true = sync (album + memory) uniquement en Wi-Fi, jamais en données mobiles. */
+    var wifiOnlySync: Boolean
+        get() = prefs.getBoolean(KEY_WIFI_ONLY_SYNC, false)
+        set(value) = prefs.edit().putBoolean(KEY_WIFI_ONLY_SYNC, value).apply()
+
+    /** Nombre de photos tirées au hasard dans l'album à chaque cycle (au lieu de tout télécharger). */
+    var albumSampleSize: Int
+        get() = prefs.getInt(KEY_ALBUM_SAMPLE_SIZE, 200)
+        set(value) = prefs.edit().putInt(KEY_ALBUM_SAMPLE_SIZE, value).apply()
+
+    /** Fréquence de renouvellement de l'échantillon album, en jours. */
+    var albumSyncFrequencyDays: Int
+        get() = prefs.getInt(KEY_ALBUM_SYNC_FREQUENCY_DAYS, 7)
+        set(value) = prefs.edit().putInt(KEY_ALBUM_SYNC_FREQUENCY_DAYS, value).apply()
 
     fun isConfigured(): Boolean =
         !serverUrl.isNullOrBlank() && !apiKey.isNullOrBlank() && !albumId.isNullOrBlank()

@@ -298,4 +298,33 @@ class ImmichApiClient(
             Result.failure(e)
         }
     }
+
+    /**
+     * GET /api/assets/{id} -> détail complet de l'asset, dont exifInfo.city
+     * et exifInfo.country. Immich géocode déjà côté serveur (pas besoin
+     * d'appeler une API de géocodage inverse tierce) — mais cette info n'est
+     * disponible que sur l'asset complet, pas sur les listes (search/metadata,
+     * memories), d'où un appel dédié par photo, à la demande (pas à la sync).
+     */
+    fun getAssetLocation(assetId: String): Result<String?> {
+        return try {
+            val response = client.newCall(buildRequest("/api/assets/$assetId")).execute()
+            response.use {
+                if (!it.isSuccessful) {
+                    return Result.failure(ImmichApiException("HTTP ${it.code} pour l'asset $assetId"))
+                }
+                val body = it.body?.string() ?: "{}"
+                val obj = JSONObject(body)
+                val exif = obj.optJSONObject("exifInfo")
+
+                val city = exif?.let { e -> if (e.isNull("city")) null else e.optString("city").ifBlank { null } }
+                val country = exif?.let { e -> if (e.isNull("country")) null else e.optString("country").ifBlank { null } }
+
+                val parts = listOfNotNull(city, country)
+                Result.success(if (parts.isEmpty()) null else parts.joinToString(", "))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

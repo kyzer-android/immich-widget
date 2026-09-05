@@ -66,10 +66,11 @@ class SyncWorker(
         val client = ImmichApiClient(serverUrl, apiKey)
 
         val remoteIdsResult = client.listAssetIdsForAlbum(albumId)
-        val remoteIds = remoteIdsResult.getOrElse {
+        val remoteIdsOrdered = remoteIdsResult.getOrElse {
             Log.e(TAG, "Échec récupération liste assets album $albumId", it)
             return Result.retry()
-        }.toSet()
+        }
+        val remoteIds = remoteIdsOrdered.toSet()
 
         val localIds = ThumbnailCache.listCachedAssetIds(applicationContext)
 
@@ -95,6 +96,7 @@ class SyncWorker(
         }
 
         prefs.lastSyncMillis = System.currentTimeMillis()
+        com.mathieu.immichwidget.cache.AssetOrderIndex.save(applicationContext, remoteIdsOrdered)
 
         // Si le widget n'affiche encore rien (1ère sync), on force un affichage initial
         WidgetUpdateHelper.updateAllWidgetsIfEmpty(applicationContext)

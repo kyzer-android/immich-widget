@@ -23,6 +23,33 @@
             android:orientation="vertical"
             android:padding="20dp">
 
+            <!-- Bannière optimisation batterie : visible seulement si l'app n'est pas exemptée (cf onResume) -->
+            <LinearLayout
+                android:id="@+id/banner_battery_warning"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/banner_warning_background"
+                android:orientation="vertical"
+                android:padding="12dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/msg_battery_optimization_warning"
+                    android:textColor="@color/config_text" />
+
+                <Button
+                    android:id="@+id/btn_open_battery_settings"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/btn_open_battery_settings" />
+
+            </LinearLayout>
+
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -37,10 +64,14 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/layout_api_key"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:hint="@string/label_api_key">
+                android:hint="@string/label_api_key"
+                app:endIconContentDescription="@string/content_desc_api_key_info"
+                app:endIconDrawable="@drawable/ic_info"
+                app:endIconMode="custom">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/input_api_key"

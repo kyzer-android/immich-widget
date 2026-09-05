@@ -124,6 +124,7 @@ class ImmichApiClient(
                     put("albumIds", JSONArray().put(albumId))
                     put("page", page)
                     put("size", 1000)
+                    put("order", "asc") // ordre chronologique stable, nécessaire pour la navigation plein écran
                 }
                 val requestBody = requestBodyJson.toString().toRequestBody(jsonMediaType)
 

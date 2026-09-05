@@ -24,7 +24,7 @@ import java.io.FileOutputStream
 object ThumbnailCache {
 
     private const val DIR_NAME = "immich_thumbnails"
-    private const val MAX_DIMENSION_PX = 500
+    private const val MAX_DIMENSION_PX = 750
     private const val WEBP_QUALITY = 90
 
     private fun cacheDir(context: Context): File {

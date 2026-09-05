@@ -40,6 +40,24 @@
 
     </FrameLayout>
 
+    <!-- Petite icône ⛶ en coin haut-droit : tap = ouvre le plein écran -->
+    <FrameLayout
+        android:id="@+id/widget_fullscreen_zone"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_gravity="top|end"
+        android:layout_margin="6dp"
+        android:background="@drawable/widget_icon_circle_bg">
+
+        <ImageView
+            android:id="@+id/widget_fullscreen_icon"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_fullscreen"
+            android:contentDescription="@string/content_desc_fullscreen" />
+    </FrameLayout>
+
     <!-- Petite icône ⚙️ en coin bas-droit : tap = ouvre la config -->
     <FrameLayout
         android:id="@+id/widget_settings_zone"

@@ -1,13 +1,18 @@
 package com.mathieu.immichwidget.config
 
 import android.appwidget.AppWidgetManager
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.os.PowerManager
+import android.provider.Settings
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
 import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -28,6 +33,7 @@ import kotlinx.coroutines.withContext
 class WidgetConfigActivity : AppCompatActivity() {
 
     private lateinit var inputServerUrl: TextInputEditText
+    private lateinit var layoutApiKey: com.google.android.material.textfield.TextInputLayout
     private lateinit var inputApiKey: TextInputEditText
     private lateinit var btnTestConnection: Button
     private lateinit var btnLoadAlbums: Button
@@ -42,6 +48,8 @@ class WidgetConfigActivity : AppCompatActivity() {
     private lateinit var btnIntervalMinus: Button
     private lateinit var btnIntervalPlus: Button
     private lateinit var btnSave: Button
+    private lateinit var bannerBatteryWarning: View
+    private lateinit var btnOpenBatterySettings: Button
 
     private lateinit var prefs: SecurePrefs
     private lateinit var albumAdapter: AlbumListAdapter
@@ -72,8 +80,29 @@ class WidgetConfigActivity : AppCompatActivity() {
         setupListeners()
     }
 
+    override fun onResume() {
+        super.onResume()
+        checkBatteryOptimization()
+    }
+
+    /**
+     * Vérifie si l'app est exemptée de l'optimisation batterie. Si non, une
+     * bannière propose d'ouvrir les paramètres de l'app — on cible
+     * ACTION_APPLICATION_DETAILS_SETTINGS (permission libre, conforme Play
+     * Store) plutôt que ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS (permission
+     * restreinte par Google, réservée aux apps avec un usage de fond justifié
+     * comme VPN/fitness). Revérifié à chaque onResume : si l'utilisateur va
+     * activer l'exemption puis revient, la bannière disparaît automatiquement.
+     */
+    private fun checkBatteryOptimization() {
+        val powerManager = getSystemService(POWER_SERVICE) as PowerManager
+        val isExempted = powerManager.isIgnoringBatteryOptimizations(packageName)
+        bannerBatteryWarning.visibility = if (isExempted) View.GONE else View.VISIBLE
+    }
+
     private fun bindViews() {
         inputServerUrl = findViewById(R.id.input_server_url)
+        layoutApiKey = findViewById(R.id.layout_api_key)
         inputApiKey = findViewById(R.id.input_api_key)
         btnTestConnection = findViewById(R.id.btn_test_connection)
         btnLoadAlbums = findViewById(R.id.btn_load_albums)
@@ -88,6 +117,8 @@ class WidgetConfigActivity : AppCompatActivity() {
         btnIntervalMinus = findViewById(R.id.btn_interval_minus)
         btnIntervalPlus = findViewById(R.id.btn_interval_plus)
         btnSave = findViewById(R.id.btn_save)
+        bannerBatteryWarning = findViewById(R.id.banner_battery_warning)
+        btnOpenBatterySettings = findViewById(R.id.btn_open_battery_settings)
     }
 
     private fun prefillFromPrefs() {
@@ -139,6 +170,26 @@ class WidgetConfigActivity : AppCompatActivity() {
             SyncWorker.triggerImmediateSync(applicationContext)
             textSyncStatus.text = getString(R.string.msg_cache_cleared)
         }
+
+        layoutApiKey.setEndIconOnClickListener { showApiKeyPermissionsInfo() }
+
+        btnOpenBatterySettings.setOnClickListener { openBatterySettings() }
+    }
+
+    private fun showApiKeyPermissionsInfo() {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.title_api_key_info)
+            .setMessage(R.string.msg_api_key_info)
+            .setPositiveButton(R.string.btn_dialog_ok, null)
+            .show()
+    }
+
+    private fun openBatterySettings() {
+        android.widget.Toast.makeText(this, R.string.msg_battery_settings_hint, android.widget.Toast.LENGTH_LONG).show()
+        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+            data = Uri.fromParts("package", packageName, null)
+        }
+        startActivity(intent)
     }
 
     /**
@@ -176,11 +227,11 @@ class WidgetConfigActivity : AppCompatActivity() {
     private fun testConnection() {
         val client = currentClient()
         if (client == null) {
-            textConnectionStatus.text = getString(R.string.msg_connection_failed, "URL ou API key manquante")
+            textConnectionStatus.text = getString(R.string.msg_connection_failed, getString(R.string.msg_missing_credentials))
             return
         }
 
-        textConnectionStatus.text = "Test en cours…"
+        textConnectionStatus.text = getString(R.string.msg_testing_connection)
 
         lifecycleScope.launch {
             val result = withContext(Dispatchers.IO) { client.testConnection() }
@@ -190,7 +241,7 @@ class WidgetConfigActivity : AppCompatActivity() {
             }.onFailure { error ->
                 textConnectionStatus.text = getString(
                     R.string.msg_connection_failed,
-                    error.message ?: "erreur inconnue"
+                    error.message ?: getString(R.string.msg_unknown_error)
                 )
             }
         }
@@ -199,12 +250,12 @@ class WidgetConfigActivity : AppCompatActivity() {
     private fun loadAlbums() {
         val client = currentClient()
         if (client == null) {
-            textConnectionStatus.text = getString(R.string.msg_connection_failed, "URL ou API key manquante")
+            textConnectionStatus.text = getString(R.string.msg_connection_failed, getString(R.string.msg_missing_credentials))
             return
         }
 
         progressAlbums.visibility = View.VISIBLE
-        textConnectionStatus.text = "Chargement des albums…"
+        textConnectionStatus.text = getString(R.string.msg_loading_albums)
 
         lifecycleScope.launch {
             val albumsResult = withContext(Dispatchers.IO) { client.listAlbums() }
@@ -218,7 +269,7 @@ class WidgetConfigActivity : AppCompatActivity() {
             }.onFailure { error ->
                 textConnectionStatus.text = getString(
                     R.string.msg_connection_failed,
-                    error.message ?: "impossible de lister les albums"
+                    error.message ?: getString(R.string.msg_albums_load_failed)
                 )
             }
         }
@@ -229,7 +280,7 @@ class WidgetConfigActivity : AppCompatActivity() {
         val key = inputApiKey.text?.toString()?.trim().orEmpty()
 
         if (url.isEmpty() || key.isEmpty()) {
-            textSyncStatus.text = getString(R.string.msg_connection_failed, "URL ou API key manquante")
+            textSyncStatus.text = getString(R.string.msg_connection_failed, getString(R.string.msg_missing_credentials))
             return
         }
 

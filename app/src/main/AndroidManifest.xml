@@ -21,6 +21,11 @@
             android:label="@string/config_title"
             android:theme="@style/Theme.ImmichWidget" />
 
+        <activity
+            android:name=".widget.FullscreenPhotoActivity"
+            android:exported="false"
+            android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" />
+
         <!-- Le widget lui-même -->
         <receiver
             android:name=".widget.PhotoWidgetProvider"

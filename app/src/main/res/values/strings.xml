@@ -4,7 +4,7 @@
     <string name="widget_label">Photo Immich aléatoire</string>
     <string name="config_title">Configuration du widget</string>
 
-    <string name="label_server_url">URL du serveur Immich (ex: https://photos.maisondrusch.duckdns.org)</string>
+    <string name="label_server_url">URL du serveur Immich (ex: https://immich.example.com)</string>
     <string name="label_api_key">API Key Immich</string>
     <string name="btn_test_connection">Tester la connexion</string>
     <string name="btn_load_albums">Charger les albums</string>
@@ -23,4 +23,23 @@
     <string name="btn_clear_cache">Vider le cache photos (force un re-téléchargement)</string>
     <string name="msg_cache_cleared">Cache vidé, nouveau téléchargement lancé 🗑️</string>
     <string name="label_current_album">Album actuel : %1$s</string>
+
+    <!-- Messages de statut / erreurs, remontés depuis le code Kotlin pour être traduisibles -->
+    <string name="msg_missing_credentials">URL ou API key manquante</string>
+    <string name="msg_testing_connection">Test en cours…</string>
+    <string name="msg_loading_albums">Chargement des albums…</string>
+    <string name="msg_unknown_error">erreur inconnue</string>
+    <string name="msg_albums_load_failed">impossible de lister les albums</string>
+
+    <!-- Info-bulle permissions de la clé API -->
+    <string name="content_desc_api_key_info">Quelles permissions donner à la clé API ?</string>
+    <string name="title_api_key_info">Permissions requises</string>
+    <string name="msg_api_key_info">Coche uniquement ces permissions lors de la création de la clé API dans Immich :\n\n• album.read — lister les albums et leurs photos\n• asset.read — métadonnées des photos\n• asset.view — accès aux vignettes\n\n⚠️ Sur Immich antérieur à la version 1.138.0, les permissions fines n\'existent pas encore : coche « all » à la place.</string>
+    <string name="btn_dialog_ok">Compris</string>
+
+    <!-- Bannière optimisation batterie -->
+    <string name="msg_battery_optimization_warning">⚠️ L\'optimisation de batterie est active pour cette app : le changement automatique de photo risque d\'être retardé.</string>
+    <string name="btn_open_battery_settings">Ouvrir les paramètres</string>
+    <string name="msg_battery_settings_hint">Dans l\'écran qui s\'ouvre : Batterie → Non restreinte</string>
+    <string name="content_desc_fullscreen">Voir en plein écran</string>
 </resources>

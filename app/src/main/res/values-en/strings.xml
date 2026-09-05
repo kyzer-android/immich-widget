@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Immich Widget</string>
+    <string name="widget_label">Random Immich photo</string>
+    <string name="config_title">Widget configuration</string>
+
+    <string name="label_server_url">Immich server URL (e.g. https://immich.example.com)</string>
+    <string name="label_api_key">Immich API Key</string>
+    <string name="btn_test_connection">Test connection</string>
+    <string name="btn_load_albums">Load albums</string>
+    <string name="btn_save">Save</string>
+    <string name="label_choose_album">Choose an album</string>
+    <string name="msg_connection_ok">Connection successful ✅</string>
+    <string name="msg_connection_failed">Connection failed ❌: %1$s</string>
+    <string name="msg_no_album_selected">Select an album before saving</string>
+    <string name="msg_sync_in_progress">Syncing…</string>
+    <string name="msg_config_saved">Settings saved, sync started 🚀</string>
+    <string name="label_auto_interval">Automatic change</string>
+    <string name="label_interval_disabled">Disabled</string>
+    <string name="label_display_mode">Photo display</string>
+    <string name="label_crop_switch">Crop image (fill the frame)</string>
+    <string name="hint_crop_switch">Off: the whole image is visible, with bars if its aspect ratio doesn\'t match the widget</string>
+    <string name="btn_clear_cache">Clear photo cache (forces a re-download)</string>
+    <string name="msg_cache_cleared">Cache cleared, new download started 🗑️</string>
+    <string name="label_current_album">Current album: %1$s</string>
+
+    <!-- Status / error messages -->
+    <string name="msg_missing_credentials">Missing URL or API key</string>
+    <string name="msg_testing_connection">Testing…</string>
+    <string name="msg_loading_albums">Loading albums…</string>
+    <string name="msg_unknown_error">unknown error</string>
+    <string name="msg_albums_load_failed">couldn\'t list albums</string>
+
+    <!-- API key permissions info -->
+    <string name="content_desc_api_key_info">What permissions should the API key have?</string>
+    <string name="title_api_key_info">Required permissions</string>
+    <string name="msg_api_key_info">Enable only these permissions when creating the API key in Immich:\n\n• album.read — list albums and their photos\n• asset.read — photo metadata\n• asset.view — thumbnail access\n\n⚠️ On Immich versions older than 1.138.0, fine-grained permissions don\'t exist yet: check \"all\" instead.</string>
+    <string name="btn_dialog_ok">Got it</string>
+
+    <!-- Battery optimization banner -->
+    <string name="msg_battery_optimization_warning">⚠️ Battery optimization is active for this app: automatic photo changes may be delayed.</string>
+    <string name="btn_open_battery_settings">Open settings</string>
+    <string name="msg_battery_settings_hint">On the screen that opens: Battery → Unrestricted</string>
+    <string name="content_desc_fullscreen">View fullscreen</string>
+</resources>

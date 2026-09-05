@@ -56,7 +56,7 @@ object ThumbnailCache {
             val original = BitmapFactory.decodeByteArray(rawBytes, 0, rawBytes.size)
                 ?: return false
 
-            val resized = scaleToFit(original, MAX_DIMENSION_PX)
+            val resized = ImageUtils.scaleToFit(original, MAX_DIMENSION_PX)
             val file = fileFor(context, assetId)
 
             FileOutputStream(file).use { out ->
@@ -120,16 +120,5 @@ object ThumbnailCache {
      */
     fun clearAll(context: Context) {
         cacheDir(context).listFiles()?.forEach { it.delete() }
-    }
-
-    /** Redimensionne pour que max(largeur, hauteur) == maxDimension, ratio conservé, sans recadrage. */
-    private fun scaleToFit(source: Bitmap, maxDimension: Int): Bitmap {
-        val longSide = maxOf(source.width, source.height)
-        if (longSide <= maxDimension) return source // déjà assez petit, pas besoin de retraiter
-
-        val scale = maxDimension.toFloat() / longSide
-        val scaledWidth = (source.width * scale).toInt().coerceAtLeast(1)
-        val scaledHeight = (source.height * scale).toInt().coerceAtLeast(1)
-        return Bitmap.createScaledBitmap(source, scaledWidth, scaledHeight, true)
     }
 }

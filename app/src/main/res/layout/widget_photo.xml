@@ -58,6 +58,62 @@
             android:contentDescription="@string/content_desc_fullscreen" />
     </FrameLayout>
 
+    <!-- Toggle Album/Memory, coin haut-gauche : visible seulement si sourceMode == BOTH -->
+    <LinearLayout
+        android:id="@+id/widget_mode_toggle_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|start"
+        android:layout_margin="6dp"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <FrameLayout
+            android:id="@+id/widget_mode_album_zone"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_marginEnd="4dp"
+            android:background="@drawable/widget_icon_circle_bg">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_album"
+                android:contentDescription="@string/content_desc_mode_album" />
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/widget_mode_memory_zone"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:background="@drawable/widget_icon_circle_bg">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_memory"
+                android:contentDescription="@string/content_desc_mode_memory" />
+        </FrameLayout>
+
+    </LinearLayout>
+
+    <!-- Badge "il y a X ans", coin bas-gauche : visible seulement en mode Memory -->
+    <TextView
+        android:id="@+id/widget_memory_badge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|start"
+        android:layout_margin="6dp"
+        android:background="@drawable/widget_icon_circle_bg"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="6dp"
+        android:textColor="@android:color/white"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
     <!-- Petite icône ⚙️ en coin bas-droit : tap = ouvre la config -->
     <FrameLayout
         android:id="@+id/widget_settings_zone"

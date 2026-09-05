@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Immich Widget</string>
+    <string name="app_name">Immich Widget V2</string>
     <string name="widget_label">Photo Immich aléatoire</string>
     <string name="config_title">Configuration du widget</string>
 
@@ -17,6 +17,11 @@
     <string name="msg_config_saved">Configuration enregistrée, sync lancée 🚀</string>
     <string name="label_auto_interval">Changement automatique</string>
     <string name="label_interval_disabled">Désactivé</string>
+    <string name="format_minutes">%1$d min</string>
+    <string name="format_hours">%1$dh</string>
+    <string name="format_hours_minutes">%1$dh %2$dmin</string>
+    <string name="format_seconds">%1$d s</string>
+    <string name="label_photo_count">%1$d photo(s)</string>
     <string name="label_display_mode">Affichage de la photo</string>
     <string name="label_crop_switch">Recadrer l\'image (remplit le cadre)</string>
     <string name="hint_crop_switch">Désactivé : l\'image entière est visible, avec des bandes si son format ne correspond pas au widget</string>
@@ -34,7 +39,7 @@
     <!-- Info-bulle permissions de la clé API -->
     <string name="content_desc_api_key_info">Quelles permissions donner à la clé API ?</string>
     <string name="title_api_key_info">Permissions requises</string>
-    <string name="msg_api_key_info">Coche uniquement ces permissions lors de la création de la clé API dans Immich :\n\n• album.read — lister les albums et leurs photos\n• asset.read — métadonnées des photos\n• asset.view — accès aux vignettes\n\n⚠️ Sur Immich antérieur à la version 1.138.0, les permissions fines n\'existent pas encore : coche « all » à la place.</string>
+    <string name="msg_api_key_info">Coche uniquement ces permissions lors de la création de la clé API dans Immich :\n\n• album.read — lister les albums et leurs photos\n• asset.read — métadonnées des photos\n• asset.view — accès aux vignettes\n• memory.read — accès aux Souvenirs du jour\n\n⚠️ Sur Immich antérieur à la version 1.138.0, les permissions fines n\'existent pas encore : coche « all » à la place.</string>
     <string name="btn_dialog_ok">Compris</string>
 
     <!-- Bannière optimisation batterie -->
@@ -42,4 +47,30 @@
     <string name="btn_open_battery_settings">Ouvrir les paramètres</string>
     <string name="msg_battery_settings_hint">Dans l\'écran qui s\'ouvre : Batterie → Non restreinte</string>
     <string name="content_desc_fullscreen">Voir en plein écran</string>
+    <string name="content_desc_mode_album">Afficher l\'album</string>
+    <string name="content_desc_mode_memory">Afficher les souvenirs</string>
+    <string name="label_years_ago">Il y a %1$d ans</string>
+    <string name="content_desc_mute">Couper/activer le son</string>
+    <string name="content_desc_close">Fermer</string>
+
+    <!-- Onglets config -->
+    <string name="tab_settings">Paramètres</string>
+    <string name="tab_album">Album</string>
+    <string name="tab_memory">Memory</string>
+
+    <string name="label_source_mode">Choix affiché dans le widget</string>
+    <string name="label_source_album">Album uniquement</string>
+    <string name="label_source_memory">Souvenirs du jour uniquement</string>
+    <string name="label_source_both">Les deux (bouton de bascule sur le widget)</string>
+    <string name="hint_auto_interval_shared">S\'applique au contenu actif du widget (album ou souvenirs)</string>
+
+    <string name="label_memory_intro">Affiche "Il y a X ans, ce jour-là" à partir des Souvenirs Immich. Nécessite le scope memory.read sur la clé API. Reconstruit entièrement chaque jour (contenu différent de la veille).</string>
+    <string name="btn_sync_memory_now">Synchroniser les souvenirs maintenant</string>
+    <string name="label_slide_duration">Durée d\'affichage par photo</string>
+    <string name="label_album_slide_duration">Défilement automatique</string>
+    <string name="hint_album_slide_duration">0 = désactivé (défilement manuel, swipe uniquement)</string>
+    <string name="label_audio">Musique de fond (plein écran)</string>
+    <string name="label_audio_default_switch">Son activé par défaut</string>
+    <string name="hint_audio_default_switch">Piste aléatoire via Free To Use (libre de droits), une nouvelle à chaque changement d\'année</string>
+    <string name="hint_audio_shared">Ce réglage est partagé avec l\'onglet Memory (même son, activable des deux côtés)</string>
 </resources>

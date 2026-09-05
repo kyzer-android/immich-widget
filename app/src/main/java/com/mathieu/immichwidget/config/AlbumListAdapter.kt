@@ -46,7 +46,7 @@ class AlbumListAdapter(
 
         fun bind(album: ImmichAlbum, isSelected: Boolean) {
             textName.text = album.albumName
-            textCount.text = "${album.assetCount} photo(s)"
+            textCount.text = itemView.context.getString(R.string.label_photo_count, album.assetCount)
             radio.isChecked = isSelected
         }
     }

@@ -30,4 +30,20 @@
         <item name="backgroundTint">@color/primary</item>
         <item name="android:textColor">@color/config_text</item>
     </style>
+
+    <!--
+        Thème plein écran pour MemoryFullscreenActivity, qui hérite
+        d'AppCompatActivity (besoin de lifecycleScope pour les coroutines).
+        Contrairement à FullscreenPhotoActivity (Activity native, donc le
+        thème framework @android:style/Theme.Black.NoTitleBar.Fullscreen
+        convient), AppCompatActivity EXIGE un thème Theme.AppCompat.* ou
+        descendant — appliquer un thème natif plante au démarrage avec
+        "You need to use a Theme.AppCompat theme (or descendant)".
+    -->
+    <style name="Theme.ImmichWidget.FullscreenAppCompat" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowBackground">@android:color/black</item>
+        <item name="colorPrimary">@color/primary</item>
+    </style>
 </resources>

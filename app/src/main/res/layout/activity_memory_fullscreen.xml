@@ -6,22 +6,24 @@
 
     <!-- Fond flouté (vignette réduite, centerCrop) : remplit joliment les bandes du fitCenter -->
     <ImageView
-        android:id="@+id/fullscreen_background"
+        android:id="@+id/memory_fullscreen_background"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="centerCrop" />
 
+    <!-- Voile sombre : garde le texte/icônes lisibles quelles que soient les couleurs de la photo -->
     <View
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="#66000000" />
 
     <ImageView
-        android:id="@+id/fullscreen_image"
+        android:id="@+id/memory_fullscreen_image"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="fitCenter" />
 
+    <!-- Dégradés non-interactifs : ne bloquent pas le swipe posé sur l'ImageView en dessous -->
     <View
         android:layout_width="match_parent"
         android:layout_height="140dp"
@@ -34,9 +36,19 @@
         android:layout_gravity="bottom"
         android:background="@drawable/gradient_bottom" />
 
+    <!-- Barre de progression façon story : 1 segment par photo du souvenir, rempli au fil du défilement -->
+    <LinearLayout
+        android:id="@+id/progress_segments_container"
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:layout_gravity="top"
+        android:layout_marginTop="16dp"
+        android:layout_marginHorizontal="12dp"
+        android:orientation="horizontal" />
+
     <!-- Croix fermer, haut-gauche -->
     <ImageView
-        android:id="@+id/fullscreen_close"
+        android:id="@+id/memory_fullscreen_close"
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_gravity="top|start"
@@ -48,7 +60,7 @@
 
     <!-- Mute/unmute, haut-droite -->
     <ImageView
-        android:id="@+id/fullscreen_mute"
+        android:id="@+id/memory_fullscreen_mute"
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_gravity="top|end"
@@ -58,15 +70,29 @@
         android:src="@drawable/ic_volume_on"
         android:contentDescription="@string/content_desc_mute" />
 
-    <!-- Date exacte de la photo, bas-gauche -->
-    <TextView
-        android:id="@+id/fullscreen_date"
+    <!-- Badge date, bas-gauche : "Il y a X ans" + date complète -->
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|start"
         android:layout_margin="24dp"
-        android:textColor="@android:color/white"
-        android:textSize="22sp"
-        android:textStyle="bold" />
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/memory_fullscreen_years_ago"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#CCFFFFFF"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/memory_fullscreen_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/white"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
 
 </FrameLayout>

@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "ImmichWidget"
+rootProject.name = "ImmichWidgetV2"
 include(":app")

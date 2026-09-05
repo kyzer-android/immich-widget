@@ -9,6 +9,9 @@ class PhotoWidgetProvider : AppWidgetProvider() {
 
     companion object {
         const val ACTION_NEXT_PHOTO = "com.mathieu.immichwidget.ACTION_NEXT_PHOTO"
+        const val ACTION_NEXT_YEAR = "com.mathieu.immichwidget.ACTION_NEXT_YEAR"
+        const val ACTION_SET_MODE = "com.mathieu.immichwidget.ACTION_SET_MODE"
+        const val EXTRA_MODE = "extra_mode"
     }
 
     override fun onUpdate(
@@ -17,21 +20,27 @@ class PhotoWidgetProvider : AppWidgetProvider() {
         appWidgetIds: IntArray
     ) {
         appWidgetIds.forEach { widgetId ->
-            WidgetUpdateHelper.showNextRandomPhoto(context, appWidgetManager, widgetId)
+            WidgetUpdateHelper.render(context, appWidgetManager, widgetId)
         }
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-        super.onReceive(context, intent) // laisse AppWidgetProvider gérer les actions système standard
+        super.onReceive(context, intent)
 
-        if (intent.action == ACTION_NEXT_PHOTO) {
-            val widgetId = intent.getIntExtra(
-                AppWidgetManager.EXTRA_APPWIDGET_ID,
-                AppWidgetManager.INVALID_APPWIDGET_ID
-            )
-            if (widgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
-                val appWidgetManager = AppWidgetManager.getInstance(context)
-                WidgetUpdateHelper.showNextRandomPhoto(context, appWidgetManager, widgetId)
+        val widgetId = intent.getIntExtra(
+            AppWidgetManager.EXTRA_APPWIDGET_ID,
+            AppWidgetManager.INVALID_APPWIDGET_ID
+        )
+        if (widgetId == AppWidgetManager.INVALID_APPWIDGET_ID) return
+
+        val appWidgetManager = AppWidgetManager.getInstance(context)
+
+        when (intent.action) {
+            ACTION_NEXT_PHOTO -> WidgetUpdateHelper.advance(context, appWidgetManager, widgetId)
+            ACTION_NEXT_YEAR -> WidgetUpdateHelper.advanceYear(context, appWidgetManager, widgetId)
+            ACTION_SET_MODE -> {
+                val mode = intent.getStringExtra(EXTRA_MODE) ?: return
+                WidgetUpdateHelper.setMode(context, appWidgetManager, widgetId, mode)
             }
         }
     }

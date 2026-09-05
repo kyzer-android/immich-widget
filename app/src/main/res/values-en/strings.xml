@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Immich Widget</string>
+    <string name="app_name">Immich Widget V2</string>
     <string name="widget_label">Random Immich photo</string>
     <string name="config_title">Widget configuration</string>
 
@@ -17,6 +17,11 @@
     <string name="msg_config_saved">Settings saved, sync started 🚀</string>
     <string name="label_auto_interval">Automatic change</string>
     <string name="label_interval_disabled">Disabled</string>
+    <string name="format_minutes">%1$d min</string>
+    <string name="format_hours">%1$dh</string>
+    <string name="format_hours_minutes">%1$dh %2$dmin</string>
+    <string name="format_seconds">%1$d s</string>
+    <string name="label_photo_count">%1$d photo(s)</string>
     <string name="label_display_mode">Photo display</string>
     <string name="label_crop_switch">Crop image (fill the frame)</string>
     <string name="hint_crop_switch">Off: the whole image is visible, with bars if its aspect ratio doesn\'t match the widget</string>
@@ -34,7 +39,7 @@
     <!-- API key permissions info -->
     <string name="content_desc_api_key_info">What permissions should the API key have?</string>
     <string name="title_api_key_info">Required permissions</string>
-    <string name="msg_api_key_info">Enable only these permissions when creating the API key in Immich:\n\n• album.read — list albums and their photos\n• asset.read — photo metadata\n• asset.view — thumbnail access\n\n⚠️ On Immich versions older than 1.138.0, fine-grained permissions don\'t exist yet: check \"all\" instead.</string>
+    <string name="msg_api_key_info">Enable only these permissions when creating the API key in Immich:\n\n• album.read — list albums and their photos\n• asset.read — photo metadata\n• asset.view — thumbnail access\n• memory.read — access to On This Day memories\n\n⚠️ On Immich versions older than 1.138.0, fine-grained permissions don\'t exist yet: check \"all\" instead.</string>
     <string name="btn_dialog_ok">Got it</string>
 
     <!-- Battery optimization banner -->
@@ -42,4 +47,30 @@
     <string name="btn_open_battery_settings">Open settings</string>
     <string name="msg_battery_settings_hint">On the screen that opens: Battery → Unrestricted</string>
     <string name="content_desc_fullscreen">View fullscreen</string>
+    <string name="content_desc_mode_album">Show album</string>
+    <string name="content_desc_mode_memory">Show memories</string>
+    <string name="label_years_ago">%1$d years ago</string>
+    <string name="content_desc_mute">Mute/unmute sound</string>
+    <string name="content_desc_close">Close</string>
+
+    <!-- Config tabs -->
+    <string name="tab_settings">Settings</string>
+    <string name="tab_album">Album</string>
+    <string name="tab_memory">Memory</string>
+
+    <string name="label_source_mode">What the widget shows</string>
+    <string name="label_source_album">Album only</string>
+    <string name="label_source_memory">On This Day memories only</string>
+    <string name="label_source_both">Both (toggle button on the widget)</string>
+    <string name="hint_auto_interval_shared">Applies to whatever the widget currently shows (album or memories)</string>
+
+    <string name="label_memory_intro">Shows "X years ago, on this day" from Immich Memories. Requires the memory.read scope on the API key. Fully rebuilt every day (content differs from the day before).</string>
+    <string name="btn_sync_memory_now">Sync memories now</string>
+    <string name="label_slide_duration">Display duration per photo</string>
+    <string name="label_album_slide_duration">Automatic slideshow</string>
+    <string name="hint_album_slide_duration">0 = disabled (manual swipe only)</string>
+    <string name="label_audio">Background music (fullscreen)</string>
+    <string name="label_audio_default_switch">Sound on by default</string>
+    <string name="hint_audio_default_switch">Random track via Free To Use (royalty-free), a new one each time the year changes</string>
+    <string name="hint_audio_shared">This setting is shared with the Memory tab (same sound, toggleable from either side)</string>
 </resources>

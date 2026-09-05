@@ -1,5 +1,6 @@
 package com.mathieu.immichwidget.api
 
+import android.util.Log
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -18,10 +19,19 @@ data class ImmichAlbum(
 )
 
 /**
- * Modèle minimal d'un asset (photo) Immich.
+ * Un asset (photo) Immich avec sa date de prise de vue, pour l'affichage en plein écran.
  */
 data class ImmichAsset(
-    val id: String
+    val id: String,
+    val date: String?
+)
+
+/**
+ * Un groupe de souvenirs "il y a X ans" pour une année donnée.
+ */
+data class ImmichMemory(
+    val year: Int,
+    val assetIds: List<String>
 )
 
 class ImmichApiException(message: String) : Exception(message)
@@ -38,6 +48,10 @@ class ImmichApiClient(
     private val baseUrl: String,
     private val apiKey: String
 ) {
+
+    companion object {
+        private const val LOG_TAG = "ImmichApiClient"
+    }
 
     private val client = OkHttpClient.Builder()
         .connectTimeout(15, TimeUnit.SECONDS)
@@ -106,16 +120,16 @@ class ImmichApiClient(
 
     /**
      * POST /api/search/metadata avec filtre "albumIds" -> liste paginée des
-     * assets de l'album, ID uniquement.
+     * assets de l'album (ID + date de prise de vue).
      *
      * ⚠️ IMPORTANT : sur Immich v3.0.0+, GET /api/albums/{id} ne renvoie plus
      * les assets de façon fiable (breaking change de l'API v3). Le endpoint
      * de recherche est la méthode recommandée par le projet Immich lui-même
      * pour lister les photos d'un album, et fonctionne aussi bien en v2 qu'en v3.
      */
-    fun listAssetIdsForAlbum(albumId: String): Result<List<String>> {
+    fun listAssetsForAlbum(albumId: String): Result<List<com.mathieu.immichwidget.cache.OrderedAsset>> {
         return try {
-            val ids = mutableListOf<String>()
+            val assets = mutableListOf<com.mathieu.immichwidget.cache.OrderedAsset>()
             var page = 1
             val jsonMediaType = "application/json; charset=utf-8".toMediaType()
 
@@ -136,7 +150,7 @@ class ImmichApiClient(
                     .build()
 
                 val response = client.newCall(request).execute()
-                val pageResult: Pair<List<String>, String?> = response.use {
+                val pageResult: Pair<List<com.mathieu.immichwidget.cache.OrderedAsset>, String?> = response.use {
                     if (!it.isSuccessful) {
                         return Result.failure(
                             ImmichApiException("HTTP ${it.code} en cherchant les assets de l'album $albumId (page $page)")
@@ -147,20 +161,24 @@ class ImmichApiClient(
                     val assetsObj = obj.optJSONObject("assets") ?: JSONObject()
                     val items = assetsObj.optJSONArray("items") ?: JSONArray()
 
-                    val pageIds = mutableListOf<String>()
+                    val pageAssets = mutableListOf<com.mathieu.immichwidget.cache.OrderedAsset>()
                     for (i in 0 until items.length()) {
-                        pageIds.add(items.getJSONObject(i).getString("id"))
+                        val item = items.getJSONObject(i)
+                        val date = item.optString("localDateTime").ifBlank {
+                            item.optString("fileCreatedAt").ifBlank { null }
+                        }
+                        pageAssets.add(com.mathieu.immichwidget.cache.OrderedAsset(item.getString("id"), date))
                     }
 
                     val nextPage = if (assetsObj.isNull("nextPage")) {
                         null
                     } else {
-                        assetsObj.optString("nextPage", null)
+                        assetsObj.optString("nextPage", null as String?)
                     }
-                    pageIds to nextPage
+                    pageAssets to nextPage
                 }
 
-                ids.addAll(pageResult.first)
+                assets.addAll(pageResult.first)
 
                 val nextPageValue = pageResult.second
                 if (nextPageValue.isNullOrBlank()) break
@@ -169,8 +187,85 @@ class ImmichApiClient(
                 page = nextPageInt
             }
 
-            Result.success(ids)
+            Result.success(assets)
         } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+
+    /**
+     * GET /api/memories -> les Souvenirs du jour ("il y a X ans, ce jour-là").
+     * Immich calcule déjà tout côté serveur pour la date du jour ; on filtre
+     * juste sur type="on_this_day" au cas où d'autres types de souvenirs
+     * seraient ajoutés côté serveur à l'avenir (cf discussions Immich sur
+     * "best of the month" etc.).
+     */
+    fun listMemories(): Result<List<ImmichMemory>> {
+        return try {
+            // Confirmé via Postman : sans ?for=<date>, l'API renvoie TOUT
+            // l'historique de souvenirs persistés (des dizaines/centaines
+            // d'entrées), pas seulement ceux du jour. La date du jour au
+            // format yyyy-MM-dd filtre correctement côté serveur.
+            val today = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
+                .format(java.util.Date())
+            val response = client.newCall(buildRequest("/api/memories?for=$today")).execute()
+            response.use {
+                if (!it.isSuccessful) {
+                    Log.e(LOG_TAG, "GET /api/memories -> HTTP ${it.code}")
+                    return Result.failure(ImmichApiException("HTTP ${it.code} en listant les souvenirs"))
+                }
+                val body = it.body?.string() ?: "[]"
+                val array = JSONArray(body)
+                Log.d(LOG_TAG, "GET /api/memories -> ${array.length()} entrée(s) brute(s) reçue(s)")
+                if (array.length() > 0) {
+                    Log.d(LOG_TAG, "JSON brut de la 1ère entrée (pour inspecter les champs dispo) : ${array.getJSONObject(0)}")
+                }
+
+                val memories = mutableListOf<ImmichMemory>()
+                for (i in 0 until array.length()) {
+                    val obj = array.getJSONObject(i)
+                    val type = obj.optString("type")
+                    if (type != "on_this_day") {
+                        Log.d(LOG_TAG, "Entrée #$i ignorée : type=\"$type\" (attendu \"on_this_day\")")
+                        continue
+                    }
+
+                    val data = obj.optJSONObject("data")
+                    val year = data?.optInt("year")
+                    if (year == null) {
+                        Log.w(LOG_TAG, "Entrée #$i ignorée : champ data.year absent ou illisible (data=$data)")
+                        continue
+                    }
+
+                    val assetsArray = obj.optJSONArray("assets") ?: JSONArray()
+                    val assetIds = (0 until assetsArray.length()).map { idx ->
+                        assetsArray.getJSONObject(idx).getString("id")
+                    }
+                    Log.d(LOG_TAG, "Entrée #$i : année=$year, ${assetIds.size} photo(s)")
+
+                    if (assetIds.isNotEmpty()) {
+                        memories.add(ImmichMemory(year = year, assetIds = assetIds))
+                    } else {
+                        Log.w(LOG_TAG, "Entrée #$i (année=$year) ignorée : liste assets vide")
+                    }
+                }
+                // Fusion par année : si Immich renvoie plusieurs entrées pour la
+                // même année (observé en pratique), on les regroupe en une seule
+                // — sinon le tap sur le widget donnerait l'impression de changer
+                // de photo sans jamais changer le badge "il y a X ans".
+                val merged = memories
+                    .groupBy { it.year }
+                    .map { (year, group) -> ImmichMemory(year = year, assetIds = group.flatMap { it.assetIds }) }
+                    .sortedByDescending { it.year }
+
+                Log.i(LOG_TAG, "Résultat final : ${merged.size} année(s) — " +
+                    merged.joinToString(", ") { "il y a ${it.year} (${it.assetIds.size} photos)" })
+
+                Result.success(merged)
+            }
+        } catch (e: Exception) {
+            Log.e(LOG_TAG, "Exception en parsant /api/memories", e)
             Result.failure(e)
         }
     }

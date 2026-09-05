@@ -29,7 +29,7 @@ class AutoChangeReceiver : BroadcastReceiver() {
                     ComponentName(context, PhotoWidgetProvider::class.java)
                 )
                 widgetIds.forEach { widgetId ->
-                    WidgetUpdateHelper.showNextRandomPhoto(context, appWidgetManager, widgetId)
+                    WidgetUpdateHelper.advance(context, appWidgetManager, widgetId)
                 }
                 // Reprogramme le prochain tick (l'intervalle est relu depuis les
                 // prefs à chaque fois, donc un changement de valeur est pris en

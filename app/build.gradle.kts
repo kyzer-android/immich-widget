@@ -8,7 +8,7 @@ android {
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.mathieu.immichwidget"
+        applicationId = "com.mathieu.immichwidget.v2"
         // minSdk 26 requis par EncryptedSharedPreferences (androidx.security.crypto)
         minSdk = 26
         targetSdk = 34
@@ -46,6 +46,8 @@ dependencies {
     implementation("com.google.android.material:material:1.12.0")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
+    implementation("androidx.viewpager2:viewpager2:1.1.0")
+    implementation("androidx.fragment:fragment-ktx:1.8.2")
 
     // Sync périodique en arrière-plan (toutes les 6h)
     implementation("androidx.work:work-runtime-ktx:2.9.1")

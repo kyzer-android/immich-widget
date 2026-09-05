@@ -24,6 +24,11 @@ class SecurePrefs private constructor(private val prefs: SharedPreferences) {
         private const val KEY_LAST_SYNC_MILLIS = "last_sync_millis"
         private const val KEY_AUTO_INTERVAL_MINUTES = "auto_interval_minutes"
         private const val KEY_CROP_MODE = "crop_mode"
+        private const val KEY_SOURCE_MODE = "source_mode"
+        private const val KEY_CURRENT_WIDGET_MODE = "current_widget_mode"
+        private const val KEY_AUDIO_MUTED = "audio_muted"
+        private const val KEY_MEMORY_SLIDE_DURATION_SECONDS = "memory_slide_duration_seconds"
+        private const val KEY_ALBUM_SLIDE_DURATION_SECONDS = "album_slide_duration_seconds"
 
         @Volatile
         private var instance: SecurePrefs? = null
@@ -79,6 +84,30 @@ class SecurePrefs private constructor(private val prefs: SharedPreferences) {
     var cropMode: Boolean
         get() = prefs.getBoolean(KEY_CROP_MODE, true)
         set(value) = prefs.edit().putBoolean(KEY_CROP_MODE, value).apply()
+
+    /** "ALBUM", "MEMORY" ou "BOTH" — quelle(s) source(s) le widget peut afficher. */
+    var sourceMode: String
+        get() = prefs.getString(KEY_SOURCE_MODE, "ALBUM") ?: "ALBUM"
+        set(value) = prefs.edit().putString(KEY_SOURCE_MODE, value).apply()
+
+    /** "ALBUM" ou "MEMORY" — ce que le widget affiche actuellement (pertinent seulement si sourceMode == "BOTH"). */
+    var currentWidgetMode: String
+        get() = prefs.getString(KEY_CURRENT_WIDGET_MODE, "ALBUM") ?: "ALBUM"
+        set(value) = prefs.edit().putString(KEY_CURRENT_WIDGET_MODE, value).apply()
+
+    var audioMuted: Boolean
+        get() = prefs.getBoolean(KEY_AUDIO_MUTED, false)
+        set(value) = prefs.edit().putBoolean(KEY_AUDIO_MUTED, value).apply()
+
+    /** Durée d'affichage de chaque photo en plein écran Memory, en secondes. */
+    var memorySlideDurationSeconds: Int
+        get() = prefs.getInt(KEY_MEMORY_SLIDE_DURATION_SECONDS, 5)
+        set(value) = prefs.edit().putInt(KEY_MEMORY_SLIDE_DURATION_SECONDS, value).apply()
+
+    /** Durée d'affichage de chaque photo en plein écran Album, en secondes. 0 = défilement manuel uniquement (swipe). */
+    var albumSlideDurationSeconds: Int
+        get() = prefs.getInt(KEY_ALBUM_SLIDE_DURATION_SECONDS, 0)
+        set(value) = prefs.edit().putInt(KEY_ALBUM_SLIDE_DURATION_SECONDS, value).apply()
 
     fun isConfigured(): Boolean =
         !serverUrl.isNullOrBlank() && !apiKey.isNullOrBlank() && !albumId.isNullOrBlank()

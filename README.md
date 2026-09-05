@@ -1,7 +1,16 @@
-# Immich Widget
+# Immich Widget V2
 
-Widget Android affichant une photo aléatoire d'un album Immich à chaque tap,
-avec accès aux paramètres via une petite icône ⚙️ intégrée au widget.
+> **Nouveautés vs V1** : plein écran avec swipe (Album), Souvenirs du jour
+> ("il y a X ans, ce jour-là") avec diaporama audio, écran de config à
+> onglets (Paramètres / Album / Memory), choix Album / Memory / Les deux
+> avec bouton de bascule sur le widget.
+>
+> `applicationId` distinct (`com.mathieu.immichwidget.v2`) : s'installe à
+> côté de la V1 sans conflit, les deux peuvent tourner en même temps.
+
+Widget Android affichant une photo aléatoire d'un album Immich (et/ou les
+Souvenirs du jour) à chaque tap, avec accès aux paramètres via une petite
+icône ⚙️ intégrée au widget.
 
 ## 🔑 Créer l'API Key Immich
 
@@ -84,6 +93,37 @@ ajoutée à l'album) télécharge un fichier plus lourd depuis le serveur avant
 réduction — un peu plus de bande passante et de temps sur un gros album,
 mais le poids final en cache reste quasi identique (on redescend toujours
 à 500px derrière).
+
+## 🖥️ Plein écran (Album)
+
+Icône ⛶ en haut-droite du widget → ouvre la photo en plein écran, swipe
+gauche/droite pour naviguer dans l'ordre chronologique des photos déjà en
+cache (pas de retéléchargement). Fermeture via le bouton Retour système.
+
+## 🕰️ Souvenirs du jour (Memory)
+
+Nouvelle source de contenu basée sur `/api/memories` d'Immich ("il y a X
+ans, ce jour-là"). Nécessite le scope **memory.read** sur la clé API.
+
+- Reconstruction **complète** chaque jour (pas de delta comme l'album — le
+  contenu change entièrement d'un jour sur l'autre)
+- Onglet **Paramètres** → choisir la source : Album uniquement / Memory
+  uniquement / Les deux (avec bouton de bascule sur le widget)
+- Onglet **Memory** → sync manuelle, réglage du son par défaut
+
+### Plein écran Memory
+
+Tap sur le widget en mode Memory → plein écran avec :
+- Auto-défilement toutes les 5s à travers les photos de l'année affichée
+- Bascule auto vers l'année suivante en fin de groupe, avec une **nouvelle
+  piste audio** tirée au hasard via l'API publique **Free To Use**
+  (musique libre de droits, aucune clé requise — https://freetouse.com/api)
+- Swipe manuel gauche/droite : change de photo/année **sans couper le son**
+- Fermeture automatique après la dernière année ; icône 🔇/🔊 et croix pour
+  fermer plus tôt
+
+⚠️ Les pistes marquées `is_premium` chez Free To Use sont exclues
+automatiquement (filtrage côté client) pour rester dans l'usage gratuit.
 
 ## ⚠️ Notes et limitations connues
 

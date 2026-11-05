@@ -1,0 +1,53 @@
+name: Build APK
+
+# Compile l'app à chaque push (toutes branches), sur les pull requests,
+# et à la demande depuis l'onglet Actions (bouton "Run workflow").
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Assemble debug APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      # Le dépôt ne contient pas gradlew / gradle-wrapper.jar : on installe
+      # directement la version de Gradle déclarée dans
+      # gradle/wrapper/gradle-wrapper.properties (8.9).
+      - name: Gradle 8.9
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.9"
+
+      # local.properties est versionné avec un sdk.dir Windows (C:\...) :
+      # il casserait le build sous Linux. Le SDK Android du runner est
+      # trouvé via ANDROID_HOME.
+      - name: Retirer local.properties (chemin SDK Windows)
+        run: rm -f local.properties
+
+      - name: Compiler (assembleDebug)
+        run: gradle assembleDebug --stacktrace
+
+      - name: Publier l'APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ImmichWidgetV2-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 30

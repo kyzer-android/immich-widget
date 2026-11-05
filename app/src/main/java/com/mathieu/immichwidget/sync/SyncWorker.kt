@@ -11,6 +11,7 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.mathieu.immichwidget.api.ImmichApiClient
 import com.mathieu.immichwidget.cache.AssetOrderIndex
+import com.mathieu.immichwidget.cache.LocationCache
 import com.mathieu.immichwidget.cache.SecurePrefs
 import com.mathieu.immichwidget.cache.ThumbnailCache
 import com.mathieu.immichwidget.widget.WidgetUpdateHelper
@@ -18,6 +19,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 
@@ -101,6 +103,19 @@ class SyncWorker(
             return Result.success()
         }
 
+        // Si l'album entier tient déjà dans la limite ET que le cache actuel
+        // correspond exactement à cet ensemble, il n'y a rien à regagner à
+        // tout revider/retélécharger — l'échantillon serait identique.
+        if (allAssets.size <= sampleSize) {
+            val allIds = allAssets.map { it.id }.toSet()
+            val cachedIds = ThumbnailCache.listCachedAssetIds(applicationContext)
+            if (allIds == cachedIds) {
+                Log.i(TAG, "Album $albumId : ${allAssets.size} photo(s), déjà toutes en cache -> resync inutile")
+                AssetOrderIndex.save(applicationContext, allAssets) // garde l'ordre à jour au cas où
+                return Result.success()
+            }
+        }
+
         val sample = if (allAssets.size <= sampleSize) allAssets else allAssets.shuffled().take(sampleSize)
         Log.i(TAG, "Album $albumId : ${allAssets.size} photo(s) au total, échantillon de ${sample.size} tiré")
 
@@ -116,6 +131,7 @@ class SyncWorker(
 
         prefs.lastSyncMillis = System.currentTimeMillis()
         AssetOrderIndex.save(applicationContext, sample)
+        LocationCache.retainOnly(applicationContext, sample.map { it.id }.toSet())
 
         WidgetUpdateHelper.updateAllWidgetsIfEmpty(applicationContext)
 
@@ -128,6 +144,7 @@ class SyncWorker(
     ): Boolean = withContext(Dispatchers.IO) {
         val semaphore = Semaphore(MAX_CONCURRENT_DOWNLOADS)
         var allSucceeded = true
+        val locations = ConcurrentHashMap<String, String>()
 
         val jobs = assetIds.map { assetId ->
             async {
@@ -140,6 +157,15 @@ class SyncWorker(
                     }
                     val saved = ThumbnailCache.saveThumbnail(applicationContext, assetId, bytes)
                     if (!saved) allSucceeded = false
+
+                    // Précharge la localisation EN MÊME TEMPS que la vignette :
+                    // elle est ainsi déjà connue au moment du visionnage, plutôt
+                    // que d'être chargée en direct (ce qui faisait clignoter le
+                    // texte à chaque changement de photo en plein écran).
+                    val location = client.getAssetLocation(assetId).getOrNull()
+                    if (!location.isNullOrBlank()) {
+                        locations[assetId] = location
+                    }
                 } catch (e: Exception) {
                     Log.e(TAG, "Échec téléchargement asset $assetId", e)
                     allSucceeded = false
@@ -149,6 +175,7 @@ class SyncWorker(
             }
         }
         jobs.awaitAll()
+        LocationCache.putAll(applicationContext, locations)
         allSucceeded
     }
 }

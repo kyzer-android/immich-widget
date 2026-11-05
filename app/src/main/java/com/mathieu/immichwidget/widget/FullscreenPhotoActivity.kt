@@ -82,7 +82,12 @@ class FullscreenPhotoActivity : BaseFullscreenActivity() {
         showCurrentPhoto()
         scheduleAutoAdvance()
         playNewRandomTrack(muteIcon, chainOnCompletion = true) // enchaînement continu
-        setupSwipeGestures(imageView, onSwipeLeft = { showNext() }, onSwipeRight = { showPrevious() })
+        setupSwipeGestures(
+            imageView,
+            onSwipeLeft = { showNext() },
+            onSwipeRight = { showPrevious() },
+            onSwipeDown = { finish() }
+        )
         excludeSystemGestures(imageView)
 
         muteIcon.setOnClickListener { toggleMute(muteIcon) }

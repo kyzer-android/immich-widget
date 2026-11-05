@@ -9,6 +9,7 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.mathieu.immichwidget.api.ImmichApiClient
+import com.mathieu.immichwidget.cache.LocationCache
 import com.mathieu.immichwidget.cache.MemoryCache
 import com.mathieu.immichwidget.cache.SecurePrefs
 import com.mathieu.immichwidget.widget.WidgetUpdateHelper
@@ -17,6 +18,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 import java.util.Calendar
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 
@@ -150,6 +152,7 @@ class MemorySyncWorker(
         }
 
         MemoryCache.saveIndex(applicationContext, memories)
+        LocationCache.retainOnly(applicationContext, allAssetIds)
         Log.i(TAG, "Sync Memory terminée : ${memories.size} année(s), ${allAssetIds.size} photo(s) au total")
 
         // Reset l'état d'affichage widget (année courante) pour repartir sur le nouveau contenu
@@ -165,6 +168,7 @@ class MemorySyncWorker(
     ): Boolean = withContext(Dispatchers.IO) {
         val semaphore = Semaphore(MAX_CONCURRENT_DOWNLOADS)
         var allSucceeded = true
+        val locations = ConcurrentHashMap<String, String>()
 
         val jobs = assetIds.map { assetId ->
             async {
@@ -177,6 +181,14 @@ class MemorySyncWorker(
                     }
                     val saved = MemoryCache.saveThumbnail(applicationContext, assetId, bytes)
                     if (!saved) allSucceeded = false
+
+                    // Précharge la localisation EN MÊME TEMPS que la vignette
+                    // (cf SyncWorker : évite le clignotement d'un chargement en
+                    // direct pendant le diaporama plein écran).
+                    val location = client.getAssetLocation(assetId).getOrNull()
+                    if (!location.isNullOrBlank()) {
+                        locations[assetId] = location
+                    }
                 } catch (e: Exception) {
                     Log.e(TAG, "Échec téléchargement asset memory $assetId", e)
                     allSucceeded = false
@@ -186,6 +198,7 @@ class MemorySyncWorker(
             }
         }
         jobs.awaitAll()
+        LocationCache.putAll(applicationContext, locations)
         allSucceeded
     }
 }

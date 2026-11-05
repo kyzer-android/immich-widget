@@ -57,7 +57,13 @@ abstract class BaseFullscreenActivity : AppCompatActivity() {
         }
     }
 
-    protected fun setupSwipeGestures(target: View, onSwipeLeft: () -> Unit, onSwipeRight: () -> Unit) {
+    protected fun setupSwipeGestures(
+        target: View,
+        onSwipeLeft: () -> Unit,
+        onSwipeRight: () -> Unit,
+        onSwipeUp: () -> Unit = {},
+        onSwipeDown: () -> Unit = {}
+    ) {
         val gestureDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
             // CRITIQUE : sans ce override, onDown() renvoie false par défaut,
             // ce qui bloque la transmission des événements suivants du geste
@@ -72,9 +78,19 @@ abstract class BaseFullscreenActivity : AppCompatActivity() {
             ): Boolean {
                 if (e1 == null) return false
                 val deltaX = e2.x - e1.x
-                if (abs(deltaX) > SWIPE_MIN_DISTANCE_PX && abs(velocityX) > SWIPE_MIN_VELOCITY) {
-                    if (deltaX < 0) onSwipeLeft() else onSwipeRight()
-                    return true
+                val deltaY = e2.y - e1.y
+
+                // La composante dominante du geste décide horizontal vs vertical
+                if (abs(deltaX) > abs(deltaY)) {
+                    if (abs(deltaX) > SWIPE_MIN_DISTANCE_PX && abs(velocityX) > SWIPE_MIN_VELOCITY) {
+                        if (deltaX < 0) onSwipeLeft() else onSwipeRight()
+                        return true
+                    }
+                } else {
+                    if (abs(deltaY) > SWIPE_MIN_DISTANCE_PX && abs(velocityY) > SWIPE_MIN_VELOCITY) {
+                        if (deltaY < 0) onSwipeUp() else onSwipeDown()
+                        return true
+                    }
                 }
                 return false
             }
@@ -152,10 +168,18 @@ abstract class BaseFullscreenActivity : AppCompatActivity() {
      * réponse arrive, on ignore le résultat plutôt que d'afficher une
      * localisation qui ne correspond plus à la photo affichée.
      */
+    /**
+     * Affiche "Ville, Pays" pour l'asset donné. Normalement déjà préchargé
+     * en cache PENDANT la sync (cf SyncWorker/MemorySyncWorker) — cet appel
+     * ne devrait donc quasi jamais avoir besoin d'aller sur le réseau ici,
+     * ce qui évite le clignotement d'un chargement en direct à chaque
+     * changement de photo. Le fetch réseau ci-dessous n'est qu'un filet de
+     * sécurité (ex: photo mise en cache avant l'existence de cette fonctionnalité).
+     */
     protected fun loadAndShowLocation(assetId: String, locationView: TextView) {
         locationView.tag = assetId
 
-        val cached = LocationCache.get(assetId)
+        val cached = LocationCache.get(applicationContext, assetId)
         if (cached != null) {
             applyLocationText(locationView, assetId, cached)
             return
@@ -174,7 +198,7 @@ abstract class BaseFullscreenActivity : AppCompatActivity() {
                 ImmichApiClient(url, key).getAssetLocation(assetId)
             }
             val location = result.getOrNull() ?: ""
-            LocationCache.put(assetId, location)
+            LocationCache.put(applicationContext, assetId, location)
             applyLocationText(locationView, assetId, location)
         }
     }

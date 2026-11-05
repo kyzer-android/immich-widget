@@ -14,7 +14,7 @@ import android.widget.TextView
 import com.mathieu.immichwidget.R
 import com.mathieu.immichwidget.cache.MemoryCache
 import com.mathieu.immichwidget.cache.SecurePrefs
-import java.text.DateFormat
+import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
@@ -96,7 +96,13 @@ class MemoryFullscreenActivity : BaseFullscreenActivity() {
 
         buildProgressSegmentsForCurrentGroup()
         showCurrentPhoto(isGroupChange = true) // force le lancement de la 1ère piste
-        setupSwipeGestures(imageView, onSwipeLeft = { goToNextPhoto() }, onSwipeRight = { goToPreviousPhoto() })
+        setupSwipeGestures(
+            imageView,
+            onSwipeLeft = { goToNextPhoto() },
+            onSwipeRight = { goToPreviousPhoto() },
+            onSwipeUp = { advanceToNextYear() },
+            onSwipeDown = { finish() }
+        )
         excludeSystemGestures(imageView)
 
         muteIcon.setOnClickListener { toggleMute(muteIcon) }
@@ -178,15 +184,20 @@ class MemoryFullscreenActivity : BaseFullscreenActivity() {
             currentPhotoIndex++
             showCurrentPhoto(isGroupChange = false)
         } else {
-            if (currentGroupIndex + 1 >= groups.size) {
-                finish() // dernière année terminée -> fermeture automatique
-                return
-            }
-            currentGroupIndex++
-            currentPhotoIndex = 0
-            buildProgressSegmentsForCurrentGroup() // nouvelle année -> nouvelle barre, repart de zéro
-            showCurrentPhoto(isGroupChange = true)
+            advanceToNextYear()
         }
+    }
+
+    /** Année suivante directe : fin naturelle des photos de l'année (goToNextPhoto) OU swipe vers le haut. */
+    private fun advanceToNextYear() {
+        if (currentGroupIndex + 1 >= groups.size) {
+            finish() // dernière année terminée -> fermeture automatique
+            return
+        }
+        currentGroupIndex++
+        currentPhotoIndex = 0
+        buildProgressSegmentsForCurrentGroup() // nouvelle année -> nouvelle barre, repart de zéro
+        showCurrentPhoto(isGroupChange = true)
     }
 
     private fun goToPreviousPhoto() {
@@ -234,12 +245,13 @@ class MemoryFullscreenActivity : BaseFullscreenActivity() {
      * Un souvenir "il y a X ans" tombe par définition le même jour/mois
      * qu'aujourd'hui — pas besoin de récupérer une date côté API (peu
      * fiable, cf le champ localDateTime abandonné) : on prend la date du
-     * jour et on recule juste l'année de X.
+     * jour et on recule juste l'année de X. Format jj/mm/aa (demandé
+     * explicitement, différent du format long utilisé côté Album).
      */
     private fun formatMemoryDate(yearsAgo: Int): String {
         val cal = Calendar.getInstance()
         cal.add(Calendar.YEAR, -yearsAgo)
-        return DateFormat.getDateInstance(DateFormat.LONG, Locale.getDefault()).format(cal.time)
+        return SimpleDateFormat("dd/MM/yy", Locale.getDefault()).format(cal.time)
     }
 
     override fun onDestroy() {

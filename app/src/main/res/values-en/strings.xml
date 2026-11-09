@@ -25,6 +25,8 @@
     <string name="label_display_mode">Photo display</string>
     <string name="label_crop_switch">Crop image (fill the frame)</string>
     <string name="hint_crop_switch">Off: the whole image is visible, with bars if its aspect ratio doesn\'t match the widget</string>
+    <string name="label_rotate_landscape_switch">Rotate landscape photos</string>
+    <string name="hint_rotate_landscape_switch">Landscape photos are rotated 90° (clockwise) to fill the screen in portrait, on the widget and in full screen</string>
     <string name="btn_clear_cache">Regenerate sample now</string>
     <string name="label_sample_size">Sample size</string>
     <string name="hint_sample_size">Number of photos randomly drawn from the album (useful for albums with thousands of photos)</string>

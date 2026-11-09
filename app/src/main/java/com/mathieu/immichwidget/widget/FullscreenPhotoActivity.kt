@@ -128,7 +128,8 @@ class FullscreenPhotoActivity : BaseFullscreenActivity() {
         if (orderedAssets.isEmpty()) return
         val asset = orderedAssets[currentIndex]
         val file = File(filesDir, "immich_thumbnails/${asset.id}.webp")
-        val bitmap = BitmapFactory.decodeFile(file.absolutePath)
+        val decoded = BitmapFactory.decodeFile(file.absolutePath)
+        val bitmap = decoded?.let { ImageOrientation.applyLandscapeRotation(applicationContext, it) }
         if (bitmap != null) {
             imageView.setImageBitmap(bitmap)
             backgroundImageView.setImageBitmap(BlurUtils.createBlurredBackground(bitmap))

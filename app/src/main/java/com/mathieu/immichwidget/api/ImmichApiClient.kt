@@ -136,6 +136,7 @@ class ImmichApiClient(
             while (true) {
                 val requestBodyJson = JSONObject().apply {
                     put("albumIds", JSONArray().put(albumId))
+                    put("type", "IMAGE") // jamais de vidéos : on ne demande que des photos
                     put("page", page)
                     put("size", 1000)
                     put("order", "asc") // ordre chronologique stable, nécessaire pour la navigation plein écran
@@ -239,10 +240,14 @@ class ImmichApiClient(
                     }
 
                     val assetsArray = obj.optJSONArray("assets") ?: JSONArray()
-                    val assetIds = (0 until assetsArray.length()).map { idx ->
-                        assetsArray.getJSONObject(idx).getString("id")
-                    }
-                    Log.d(LOG_TAG, "Entrée #$i : année=$year, ${assetIds.size} photo(s)")
+                    // Jamais de vidéos : on ne garde que les assets qui ne sont pas de type VIDEO
+                    val assetIds = (0 until assetsArray.length())
+                        .map { idx -> assetsArray.getJSONObject(idx) }
+                        .filter { asset -> asset.optString("type") != "VIDEO" }
+                        .map { asset -> asset.getString("id") }
+                    val skippedVideos = assetsArray.length() - assetIds.size
+                    Log.d(LOG_TAG, "Entrée #$i : année=$year, ${assetIds.size} photo(s)" +
+                        if (skippedVideos > 0) ", $skippedVideos vidéo(s) ignorée(s)" else "")
 
                     if (assetIds.isNotEmpty()) {
                         memories.add(ImmichMemory(year = year, assetIds = assetIds))

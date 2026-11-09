@@ -144,6 +144,23 @@
             android:textColor="@color/config_text_secondary"
             android:textSize="12sp" />
 
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/switch_rotate_landscape"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:checked="true"
+            android:text="@string/label_rotate_landscape_switch"
+            android:textColor="@color/config_text" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/hint_rotate_landscape_switch"
+            android:textColor="@color/config_text_secondary"
+            android:textSize="12sp" />
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

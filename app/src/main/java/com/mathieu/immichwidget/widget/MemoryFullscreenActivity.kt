@@ -217,7 +217,8 @@ class MemoryFullscreenActivity : BaseFullscreenActivity() {
         val group = currentGroup()
         val assetId = group.assetIds[currentPhotoIndex]
         val file = MemoryCache.filePathFor(applicationContext, assetId)
-        val bitmap = BitmapFactory.decodeFile(file.absolutePath)
+        val decoded = BitmapFactory.decodeFile(file.absolutePath)
+        val bitmap = decoded?.let { ImageOrientation.applyLandscapeRotation(applicationContext, it) }
         if (bitmap != null) {
             imageView.setImageBitmap(bitmap)
             backgroundImageView.setImageBitmap(BlurUtils.createBlurredBackground(bitmap))

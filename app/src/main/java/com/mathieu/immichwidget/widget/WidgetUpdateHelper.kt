@@ -99,8 +99,9 @@ object WidgetUpdateHelper {
         val excludeId = currentAlbumAssetIdByWidget[widgetId]
         val file = ThumbnailCache.pickRandom(context, excludeAssetId = excludeId)
             ?: return PreparedContent(null, null)
-        val bitmap = BitmapFactory.decodeFile(file.absolutePath)
+        val decoded = BitmapFactory.decodeFile(file.absolutePath)
             ?: return PreparedContent(null, null)
+        val bitmap = ImageOrientation.applyLandscapeRotation(context, decoded)
         currentAlbumAssetIdByWidget[widgetId] = file.nameWithoutExtension
         return PreparedContent(bitmap, badgeText = null)
     }
@@ -121,8 +122,9 @@ object WidgetUpdateHelper {
         val assetId = cachedAssetIds[photoIndex]
 
         val file = MemoryCache.filePathFor(context, assetId)
-        val bitmap = BitmapFactory.decodeFile(file.absolutePath)
+        val decoded = BitmapFactory.decodeFile(file.absolutePath)
             ?: return PreparedContent(null, null)
+        val bitmap = ImageOrientation.applyLandscapeRotation(context, decoded)
 
         val currentYear = Calendar.getInstance().get(Calendar.YEAR)
         val badgeText = context.getString(R.string.label_years_ago, currentYear - group.year)

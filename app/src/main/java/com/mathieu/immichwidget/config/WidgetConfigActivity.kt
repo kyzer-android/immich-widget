@@ -125,6 +125,7 @@ class WidgetConfigActivity : AppCompatActivity() {
     // ================= PAGE PARAMÈTRES =================
 
     private var switchWifiOnly: SwitchMaterial? = null
+    private var switchRotateLandscape: SwitchMaterial? = null
 
     private fun bindSettingsPage(view: View) {
         bannerBatteryWarning = view.findViewById(R.id.banner_battery_warning)
@@ -140,11 +141,13 @@ class WidgetConfigActivity : AppCompatActivity() {
         val btnIntervalMinus = view.findViewById<Button>(R.id.btn_interval_minus)
         val btnIntervalPlus = view.findViewById<Button>(R.id.btn_interval_plus)
         switchWifiOnly = view.findViewById(R.id.switch_wifi_only)
+        switchRotateLandscape = view.findViewById(R.id.switch_rotate_landscape)
 
         inputServerUrl?.setText(prefs.serverUrl ?: "")
         inputApiKey?.setText(prefs.apiKey ?: "")
         switchCropMode?.isChecked = prefs.cropMode
         switchWifiOnly?.isChecked = prefs.wifiOnlySync
+        switchRotateLandscape?.isChecked = prefs.rotateLandscape
         currentIntervalMinutes = prefs.autoChangeIntervalMinutes
         updateIntervalDisplay()
 
@@ -433,6 +436,7 @@ class WidgetConfigActivity : AppCompatActivity() {
         prefs.memorySlideDurationSeconds = currentSlideDurationSeconds
         prefs.albumSlideDurationSeconds = currentAlbumSlideDurationSeconds
         prefs.wifiOnlySync = switchWifiOnly?.isChecked ?: false
+        prefs.rotateLandscape = switchRotateLandscape?.isChecked ?: true
         prefs.albumSampleSize = currentSampleSize
         prefs.albumSyncFrequencyDays = currentSyncFrequencyDays
         if (!albumId.isNullOrBlank() && !albumName.isNullOrBlank()) {

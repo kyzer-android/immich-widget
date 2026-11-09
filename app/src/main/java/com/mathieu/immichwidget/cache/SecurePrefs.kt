@@ -30,6 +30,7 @@ class SecurePrefs private constructor(private val prefs: SharedPreferences) {
         private const val KEY_MEMORY_SLIDE_DURATION_SECONDS = "memory_slide_duration_seconds"
         private const val KEY_ALBUM_SLIDE_DURATION_SECONDS = "album_slide_duration_seconds"
         private const val KEY_WIFI_ONLY_SYNC = "wifi_only_sync"
+        private const val KEY_ROTATE_LANDSCAPE = "rotate_landscape"
         private const val KEY_ALBUM_SAMPLE_SIZE = "album_sample_size"
         private const val KEY_ALBUM_SYNC_FREQUENCY_DAYS = "album_sync_frequency_days"
 
@@ -116,6 +117,11 @@ class SecurePrefs private constructor(private val prefs: SharedPreferences) {
     var wifiOnlySync: Boolean
         get() = prefs.getBoolean(KEY_WIFI_ONLY_SYNC, false)
         set(value) = prefs.edit().putBoolean(KEY_WIFI_ONLY_SYNC, value).apply()
+
+    /** true = les photos paysage sont pivotées de 90° (sens horaire) pour remplir l'écran en portrait. */
+    var rotateLandscape: Boolean
+        get() = prefs.getBoolean(KEY_ROTATE_LANDSCAPE, true)
+        set(value) = prefs.edit().putBoolean(KEY_ROTATE_LANDSCAPE, value).apply()
 
     /** Nombre de photos tirées au hasard dans l'album à chaque cycle (au lieu de tout télécharger). */
     var albumSampleSize: Int

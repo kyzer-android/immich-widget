@@ -25,6 +25,8 @@
     <string name="label_display_mode">Affichage de la photo</string>
     <string name="label_crop_switch">Recadrer l\'image (remplit le cadre)</string>
     <string name="hint_crop_switch">Désactivé : l\'image entière est visible, avec des bandes si son format ne correspond pas au widget</string>
+    <string name="label_rotate_landscape_switch">Pivoter les photos paysage</string>
+    <string name="hint_rotate_landscape_switch">Les photos paysage sont tournées de 90° (sens horaire) pour remplir l\'écran en portrait, sur le widget et en plein écran</string>
     <string name="btn_clear_cache">Régénérer l\'échantillon maintenant</string>
     <string name="label_sample_size">Taille de l\'échantillon</string>
     <string name="hint_sample_size">Nombre de photos tirées au hasard dans l\'album (utile pour les albums de plusieurs milliers de photos)</string>
